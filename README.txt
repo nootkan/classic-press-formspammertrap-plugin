@@ -5,7 +5,7 @@ Requires at least: 4.9
 Tested up to: 6.0
 Stable tag: 1.4.0
 Requires PHP: => 7.2
-License: GPL2
+License: GPL2 or greater
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
 Professional anti-spam contact form powered by FormSpammerTrap with advanced spam protection, file uploads, and enterprise-level security features.
@@ -536,5 +536,6 @@ If you find this plugin useful, consider supporting:
 * Wordpress development at https://www.wordpress.org
 
 ---
+
 
 Thank you for using FormSpammerTrap Contact Form!
