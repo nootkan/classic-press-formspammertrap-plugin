@@ -3,7 +3,7 @@
  * Plugin Name: FormSpammerTrap Contact Form
  * Plugin URI: https://your-website.com
  * Description: Integrates FormSpammerTrap anti-spam contact form into ClassicPress with Fixed PHPMailer
- * Version: 1.4.4
+ * Version: 1.5.0
  * Author: Van Isle Web Solutions
  * License: GPL2
  * Requires at least: 4.9
@@ -577,11 +577,11 @@ class FormSpammerTrapPlugin {
                                         <span style="color: #646970;"><?php echo date('g:i a', strtotime($submission->submission_date)); ?></span>
                                     </td>
                                     <td>
-                                        <strong><?php echo esc_html($submission->visitor_name); ?></strong><br>
-                                        <a href="mailto:<?php echo esc_attr($submission->visitor_email); ?>"><?php echo esc_html($submission->visitor_email); ?></a>
+                                        <strong><?php esc_html($submission->visitor_name ?? ''); ?></strong><br>
+                                        <a href="mailto:<?php echo esc_attr($submission->visitor_email ?? ''); ?>"><?php echo esc_html($submission->visitor_email ?? ''); ?></a>
                                     </td>
                                     <td>
-                                        <strong><?php echo esc_html($submission->subject); ?></strong>
+                                        <strong><?php esc_html($submission->subject ?? ''); ?></strong>
                                     </td>
                                     <td>
                                         <?php 
@@ -725,15 +725,15 @@ class FormSpammerTrapPlugin {
                         <table class="form-table">
                             <tr>
                                 <th>Name:</th>
-                                <td><strong><?php echo esc_html($submission->visitor_name); ?></strong></td>
+                                <td><strong><?php esc_html($submission->visitor_name ?? ''); ?></strong></td>
                             </tr>
                             <tr>
                                 <th>Email:</th>
-                                <td><a href="mailto:<?php echo esc_attr($submission->visitor_email); ?>"><?php echo esc_html($submission->visitor_email); ?></a></td>
+                                <td><a href="mailto:<?php echo esc_attr($submission->visitor_email ?? ''); ?>"><?php echo esc_html($submission->visitor_email ?? ''); ?></a></td>
                             </tr>
                             <tr>
                                 <th>Subject:</th>
-                                <td><?php echo esc_html($submission->subject); ?></td>
+                                <td><?php echo esc_html($submission->subject ?? ''); ?></td>
                             </tr>
                             <tr>
                                 <th>Submitted:</th>
@@ -764,11 +764,11 @@ class FormSpammerTrapPlugin {
                         <table class="form-table">
                             <tr>
                                 <th>IP Address:</th>
-                                <td><?php echo esc_html($submission->visitor_ip); ?></td>
+                                <td><?php echo esc_html($submission->visitor_ip ?? ''); ?></td>
                             </tr>
                             <tr>
                                 <th>User Agent:</th>
-                                <td style="word-break: break-all; font-size: 11px;"><?php echo esc_html($submission->user_agent); ?></td>
+                                <td style="word-break: break-all; font-size: 11px;"><?php echo esc_html($submission->user_agent ?? ''); ?></td>
                             </tr>
                             <?php if (!empty($submission->attachments)): ?>
                             <tr>
@@ -795,7 +795,7 @@ class FormSpammerTrapPlugin {
                 <div style="margin-bottom: 20px;">
                     <h3>Message</h3>
                     <div style="background: #f9f9f9; padding: 15px; border-left: 4px solid #2271b1; white-space: pre-wrap; font-family: inherit;">
-<?php echo esc_html($submission->message); ?>
+                <?php echo esc_html($submission->message ?? ''); ?>
                     </div>
                 </div>
                 
@@ -819,11 +819,11 @@ class FormSpammerTrapPlugin {
                     <h3>Admin Notes</h3>
                     <form method="post" action="">
                         <?php wp_nonce_field('fst_update_notes'); ?>
-                        <textarea name="admin_notes" rows="4" style="width: 100%;" placeholder="Add your notes about this submission..."><?php echo esc_textarea($submission->admin_notes); ?></textarea>
+                        <textarea name="admin_notes" rows="4" style="width: 100%;" placeholder="Add your notes about this submission..."><?php echo esc_textarea($submission->admin_notes ?? ''); ?></textarea>
                         <p>
                             <input type="submit" name="update_notes" class="button button-primary" value="Update Notes">
                             <a href="<?php echo remove_query_arg('view'); ?>" class="button">← Back to List</a>
-                            <a href="mailto:<?php echo esc_attr($submission->visitor_email); ?>?subject=Re: <?php echo esc_attr($submission->subject); ?>" class="button">Reply via Email</a>
+                            <a href="mailto:<?php echo esc_attr($submission->visitor_email ?? ''); ?>?subject=Re: <?php echo esc_attr($submission->subject ?? ''); ?>" class="button">Reply via Email</a>
                         </p>
                     </form>
                 </div>
@@ -1438,9 +1438,9 @@ class FormSpammerTrapPlugin {
             $status_color = isset($status_colors[$submission->status]) ? $status_colors[$submission->status] : '#646970';
             
             echo '<tr>';
-            echo '<td><strong>' . esc_html($submission->visitor_name) . '</strong><br>';
-            echo '<small>' . esc_html($submission->visitor_email) . '</small></td>';
-            echo '<td>' . esc_html(wp_trim_words($submission->subject, 5)) . '</td>';
+            echo '<td><strong>' . esc_html($submission->visitor_name ?? '') . '</strong><br>';
+            echo '<small>' . esc_html($submission->visitor_email ?? '') . '</small></td>';
+            echo '<td>' . esc_html(wp_trim_words($submission->subject ?? '', 5)) . '</td>';
             echo '<td>' . date('M j', strtotime($submission->submission_date)) . '</td>';
             echo '<td><span style="color: ' . $status_color . '; font-weight: bold;">' . ucfirst(str_replace('_', ' ', $submission->status)) . '</span></td>';
             echo '</tr>';
