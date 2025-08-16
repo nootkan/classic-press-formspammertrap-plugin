@@ -1,24 +1,38 @@
 === FormSpammerTrap Contact Form ===
 Contributors: Van Isle Web Solutions
-Tags: contact form, spam protection, anti-spam, form security, email, file uploads
+Tags: contact form, spam protection, anti-spam, form security, email, file uploads, form submissions, dashboard
 Requires at least: 4.9
-Tested up to: 6.0
-Stable tag: 1.4.0
+Tested up to: 6.8.2
+Stable tag: 1.5.0
 Requires PHP: => 7.2
 License: GPL2
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
-Professional anti-spam contact form powered by FormSpammerTrap with advanced spam protection, file uploads, and enterprise-level security features.
+Professional anti-spam contact form with submission management, file uploads, and enterprise-level security features powered by FormSpammerTrap.
 
 == Description ==
 
 FormSpammerTrap Contact Form provides a secure, spam-resistant contact form for your ClassicPress/Wordpress website. Built on the proven FormSpammerTrap anti-spam system, this plugin offers advanced protection against bots, spammers, and automated attacks while maintaining excellent usability for legitimate visitors.
+
+**🆕 NEW in v1.5.0: Complete Form Submissions Management System**
+
+* **📊 Submissions Dashboard** - View, search, and manage all form submissions in one place
+* **🔍 Advanced Search & Filtering** - Find submissions by status, date, name, email, or message content
+* **📝 Individual Submission View** - See complete details including technical information and attachments
+* **📋 Admin Notes** - Add internal notes to any submission for team collaboration
+* **📈 Dashboard Widget** - Quick view of recent submissions on your WordPress dashboard
+* **🔔 Admin Notifications** - Get notified about unread submissions throughout your admin area
+* **📊 Submission Status Tracking** - Monitor email delivery success/failure for each submission
+* **🗂️ Bulk Actions** - Mark multiple submissions as read/unread or delete them efficiently
+* **📎 File Attachment Tracking** - See what files were uploaded with each submission
+* **🏷️ Status Management** - Automatic status tracking (unread, read, sent, email failed)
 
 **Key Features:**
 
 * **Advanced Spam Protection** - Multiple layers of bot detection and spam prevention
 * **No CAPTCHA Required** - Uses invisible protection methods that don't burden users
 * **Secure File Uploads** - Allow visitors to attach files with enterprise-level security
+* **Form Submissions Management** - Complete dashboard to view and manage all form submissions
 * **Complete Clean Uninstall** - Removes ALL plugin data, files, and database entries when deleted
 * **Automatic File Cleanup** - GDPR-compliant automatic deletion of uploaded files
 * **Directory Protection** - .htaccess security prevents direct file access for uploads folder
@@ -34,8 +48,22 @@ FormSpammerTrap Contact Form provides a secure, spam-resistant contact form for 
 * **PHPMailer Integration** - Reliable email delivery system
 * **Multiple Recipients** - Support for CC and BCC email addresses
 
-**🧹 Complete Cleanup Features (NEW in v1.4.4):**
+**📊 Form Submissions Management Features:**
 
+* **Comprehensive Submission Storage** - All form data automatically saved to secure database
+* **Advanced Admin Interface** - Professional dashboard with sorting, filtering, and pagination
+* **Email Integration** - Direct links to reply to submitters via your email client
+* **Technical Details** - IP addresses, user agents, submission timestamps for security analysis
+* **Search Functionality** - Find specific submissions by any field content
+* **Status Tracking** - Track which submissions have been read and which emails succeeded
+* **Bulk Management** - Efficiently manage multiple submissions simultaneously
+* **Admin Collaboration** - Internal notes system for team communication about submissions
+* **Dashboard Integration** - Quick access widget shows recent submissions on main dashboard
+* **Smart Notifications** - Admin notices alert you to unread submissions throughout the admin area
+
+**🧹 Complete Cleanup Features (Enhanced in v1.5.0):**
+
+* **Submission Data Cleanup** - Removes all stored form submissions and related data
 * **Database Options Cleanup** - Removes all plugin-specific options (fst_default_email, fst_enable_uploads, etc.)
 * **FormSpammerTrap Core Cleanup** - Removes all FormSpammerTrap configuration options (fst_show_required_message, fst_cc_email, etc.)
 * **Database Tables Cleanup** - Safely removes FormSpammerTrap database tables (fst_* and formspammertrap* patterns only)
@@ -54,6 +82,7 @@ FormSpammerTrap Contact Form provides a secure, spam-resistant contact form for 
 * **Automated Cleanup** - Daily cron jobs remove old upload folder files based on retention settings
 * **Security Monitoring** - Real-time dashboard shows protection status and storage usage of uploads directory
 * **Safe Table Cleanup** - Intelligent database cleanup that only targets FormSpammerTrap-specific tables
+* **Secure Submission Storage** - All form data stored with proper sanitization and validation
 
 **File Upload Features:**
 
@@ -64,10 +93,11 @@ FormSpammerTrap Contact Form provides a secure, spam-resistant contact form for 
 * **Retention Control** - Automatic deletion after 7, 14, 30, or 90 days
 * **Secure Storage** - Files protected from direct access while available to admins
 * **Complete Removal** - All upload files and folders removed during plugin uninstall
+* **Attachment Tracking** - View file information for each submission in the admin dashboard
 
 **Easy to Use:**
 
-Simply add the `[formspammertrap]` shortcode to any page or post to display the contact form. The plugin includes a comprehensive admin interface for configuration and security monitoring.
+Simply add the `[formspammertrap]` shortcode to any page or post to display the contact form. The plugin includes a comprehensive admin interface for configuration, security monitoring, and submission management.
 
 == Installation ==
 
@@ -91,9 +121,10 @@ Simply add the `[formspammertrap]` shortcode to any page or post to display the 
 8. Set your email address (must be on your domain)
 9. Configure file upload options if desired
 10. Review security status and configure retention settings
+11. **NEW:** Access Settings > Form Submissions to view and manage all form submissions
 
 **🗑️ Clean Removal:**
-When you no longer want the plugin, simply delete it from the Plugins page. The enhanced cleanup system will automatically remove all plugin data, uploaded files, database entries, and configuration - leaving your site completely clean!
+When you no longer want the plugin, simply delete it from the Plugins page. The enhanced cleanup system will automatically remove all plugin data, uploaded files, form submissions, database entries, and configuration - leaving your site completely clean!
 
 == Configuration ==
 
@@ -105,6 +136,15 @@ When you no longer want the plugin, simply delete it from the Plugins page. The 
 4. **Custom Thank You Message** - Personalize the success message
 5. **Max URLs Allowed** - Control spam by limiting URLs in messages (0-10)
 6. **Enable Reset Button** - Add a form reset option for users
+
+**📊 Form Submissions Settings:**
+
+1. **Automatic Saving** - All form submissions are automatically saved to the database
+2. **Admin Access** - View submissions via Settings > Form Submissions
+3. **Status Tracking** - Submissions are marked as read/unread automatically
+4. **Email Delivery Tracking** - Monitor whether emails were sent successfully
+5. **Admin Notes** - Add internal comments to any submission
+6. **Search & Filter** - Find specific submissions quickly
 
 **File Upload Settings:**
 
@@ -143,6 +183,16 @@ Add this shortcode to any page or post:
 [formspammertrap email="contact@yourdomain.com",bcc="blind@example.com",cc="copy@example.com,another@example.com"]
 ```
 
+**📊 Managing Form Submissions:**
+
+1. **View All Submissions** - Go to Settings > Form Submissions
+2. **Search Submissions** - Use the search box to find specific entries
+3. **Filter by Status** - Show only unread, read, sent, or failed submissions
+4. **View Individual Submissions** - Click "View" to see complete details
+5. **Add Admin Notes** - Click "View" then add notes in the admin notes section
+6. **Bulk Actions** - Select multiple submissions and mark as read/unread or delete
+7. **Email Integration** - Click "Reply via Email" to respond directly to submitters
+
 **Shortcode Attributes:**
 * `email` - Override default recipient email
 * `cc` - Add CC recipients (comma-separated for multiple)
@@ -157,7 +207,45 @@ The contact form includes these standard fields:
 * **Message** (Required) - Main message content
 * **Attach File** (Optional) - Multiple file uploads with preview
 
-All fields include validation and spam protection features. File uploads include extension validation and security scanning.
+All fields include validation and spam protection features. File uploads include extension validation and security scanning. **All form data is automatically saved to the submissions dashboard for easy management.**
+
+== 📊 Form Submissions Dashboard ==
+
+**Dashboard Features:**
+
+* **📋 Submissions List** - Comprehensive table showing all form submissions
+* **🔍 Advanced Search** - Search by name, email, subject, or message content
+* **📊 Status Filtering** - Filter by unread, read, sent, or email failed status
+* **📄 Pagination** - Navigate through large numbers of submissions efficiently
+* **📈 Quick Stats** - See total submissions, unread count, and today's submissions
+
+**Individual Submission View:**
+
+* **👤 Visitor Information** - Name, email, subject, submission date, and status
+* **🔧 Technical Details** - IP address, user agent, and timestamp for security analysis
+* **📎 File Attachments** - List of uploaded files with sizes and types
+* **📝 Complete Message** - Full message content in easy-to-read format
+* **🗒️ Admin Notes** - Add and edit internal notes for team collaboration
+* **📧 Email Integration** - Direct "Reply via Email" links to your email client
+
+**Bulk Management:**
+
+* **✅ Bulk Actions** - Mark multiple submissions as read/unread
+* **🗑️ Bulk Delete** - Remove multiple submissions efficiently
+* **🔲 Select All** - Checkbox to select all visible submissions
+* **📊 Status Management** - Change status for multiple submissions simultaneously
+
+**Dashboard Widget:**
+
+* **📈 Recent Submissions Widget** - Shows latest 5 submissions on WordPress dashboard
+* **📊 Quick Statistics** - Total, unread, and today's submission counts
+* **🔗 Quick Access** - Direct link to full submissions dashboard
+
+**Admin Notifications:**
+
+* **🔔 Unread Alerts** - Admin notices show when you have unread submissions
+* **📍 Smart Placement** - Notifications appear throughout admin area (except on submissions page)
+* **🔗 Direct Links** - Click notification to go directly to unread submissions
 
 == Plugin Security Features ==
 
@@ -168,6 +256,14 @@ All fields include validation and spam protection features. File uploads include
 * reCAPTCHA support (optional)
 * URL counting prevents link spam
 * Email validation prevents invalid addresses
+
+**📊 Submission Security:**
+* All form data sanitized before database storage
+* Secure database queries prevent SQL injection
+* Admin-only access to submissions dashboard
+* Nonce verification for all admin actions
+* XSS protection on all output
+* CSRF protection for form actions
 
 **File Upload Security:**
 * Extension whitelist prevents dangerous files
@@ -189,19 +285,39 @@ All fields include validation and spam protection features. File uploads include
 * Automatic deletion of old uploads
 * Privacy-focused logging controls
 * Secure file storage practices
-* Complete data removal on plugin deletion
+* Complete data removal on plugin deletion (including submissions)
 
 **🆕 Database Protection:**
 * Safe cleanup that only targets FormSpammerTrap-specific tables
 * Preserves other plugin data (Contact Form 7, WPForms, etc.)
 * Intelligent pattern matching for table identification
 * Complete options and transients cleanup
+* Secure submission data storage with proper validation
 
 == Frequently Asked Questions ==
 
+= 🆕 What happens to my form submissions when I delete the plugin? =
+**All form submissions are permanently deleted!** Version 1.5.0 features comprehensive cleanup that removes all stored submissions along with files, configuration, and database entries. If you need to keep submission data, export or backup the information before deleting the plugin.
+
+= How do I access my form submissions? =
+Go to Settings > Form Submissions in your WordPress admin. You'll see a complete dashboard with all submissions, search functionality, and filtering options.
+
+= Can I search through my form submissions? =
+Yes! The submissions dashboard includes advanced search that looks through names, email addresses, subjects, and message content. You can also filter by status (unread, read, sent, email failed).
+
+= What information is saved with each submission? =
+Each submission includes: visitor name, email, subject, message, submission date/time, IP address, browser information, file attachments (if any), current status, and space for admin notes.
+
+= Can I add notes to submissions? =
+Absolutely! Click "View" on any submission and you'll find an admin notes section where you can add internal comments for team collaboration.
+
+= How do I reply to someone who submitted the form? =
+Click "View" on any submission, then click the "Reply via Email" button. This will open your default email client with the person's email address pre-filled.
+
 = What gets removed when I delete the plugin? =
-**Everything!** Version 1.4.4 features comprehensive cleanup that removes:
-- All plugin configuration options
+**Everything!** Version 1.5.0 features comprehensive cleanup that removes:
+- All form submissions and related data
+- All plugin configuration options  
 - All FormSpammerTrap core options (fst_* database entries)
 - Upload folder and all files (including security files)
 - FormSpammerTrap database tables (if any)
@@ -249,7 +365,10 @@ No, FormSpammerTrap provides effective protection without requiring CAPTCHA.
 Spam submissions are automatically blocked and redirected. No spam emails reach your inbox.
 
 = How do I know the cleanup worked? =
-Check your error logs for detailed cleanup reports. You'll see exactly what was removed: options, files, folders, and database entries.
+Check your error logs for detailed cleanup reports. You'll see exactly what was removed: options, files, folders, database entries, and form submissions.
+
+= Can I export my form submissions? =
+The current version displays submissions in the admin dashboard. For export functionality, you can copy the data from individual submission views or contact support for bulk export options.
 
 == Requirements ==
 
@@ -265,6 +384,7 @@ Check your error logs for detailed cleanup reports. You'll see exactly what was 
 * Modern web browser with JavaScript enabled
 * Reliable email hosting
 * Adequate disk space for file uploads (if enabled)
+* Adequate database space for form submissions storage
 
 **Server Requirements:**
 * PHP mail() function or SMTP access
@@ -272,6 +392,7 @@ Check your error logs for detailed cleanup reports. You'll see exactly what was 
 * CURL support (for reCAPTCHA if used)
 * File system write permissions for upload folder
 * Cron job support for automatic cleanup
+* Database write permissions for submissions storage
 
 == Installation Status ==
 
@@ -282,6 +403,7 @@ The plugin includes a comprehensive installation status checker that verifies:
 * Security protection status
 * Cleanup schedule status
 * Core requirements
+* **NEW:** Submissions database table status
 
 Check Settings > FormSpammerTrap > Installation Status for detailed status information.
 
@@ -292,12 +414,14 @@ The Security Status dashboard provides real-time monitoring of:
 * **Automatic Cleanup** - File retention and deletion schedule
 * **Cleanup Schedule** - Cron job status and next run time
 * **Current Storage** - File count and disk usage statistics
+* **🆕 Submissions Database** - Table status and entry counts
 
 == Data Management ==
 
-**🆕 Enhanced in v1.4.4:**
+**🆕 Enhanced in v1.5.0:**
 
 **What Gets Cleaned Up on Plugin Deletion:**
+- ✅ **All form submissions and related data**
 - ✅ All plugin configuration (fst_default_email, fst_enable_uploads, etc.)
 - ✅ All FormSpammerTrap core options (fst_show_required_message, fst_cc_email, etc.)
 - ✅ Upload folder and ALL contents (files, .htaccess, index.php, subdirectories)
@@ -312,7 +436,7 @@ The Security Status dashboard provides real-time monitoring of:
 - ❌ Other plugin upload folders
 
 **Backup Recommendation:**
-If you have important uploaded files, create a backup before deleting the plugin. The cleanup is thorough and permanent!
+If you have important uploaded files or want to keep form submission data, create a backup before deleting the plugin. The cleanup is thorough and permanent!
 
 == Support ==
 
@@ -321,6 +445,7 @@ If you have important uploaded files, create a backup before deleting the plugin
 2. Review the FormSpammerTrap documentation at FormSpammerTrap.com
 3. Verify all required files are properly installed
 4. Check the Installation Status and Security Status in the plugin settings
+5. **NEW:** Check the Form Submissions dashboard for submission-related issues
 
 **Common Issues:**
 * **Blank page after submission** - Usually indicates a PHP error or missing files
@@ -329,11 +454,29 @@ If you have important uploaded files, create a backup before deleting the plugin
 * **Submit button not appearing** - This is normal; fill out required fields first
 * **File uploads not working** - Check server permissions and file extension settings
 * **Security warnings** - Review Security Status dashboard for specific issues
+* **🆕 Submissions not saving** - Verify database permissions and check Installation Status
+* **🆕 Can't access submissions dashboard** - Ensure you have admin privileges and the database table was created
 
 **For FormSpammerTrap Core Issues Only:**
 Visit FormSpammerTrap.com for support with the core FormSpammerTrap system.
 
 == Changelog ==
+
+= 1.5.0 =
+* **🆕 FORM SUBMISSIONS MANAGEMENT SYSTEM**
+* Complete submissions dashboard with advanced search and filtering
+* Individual submission view with full details and technical information
+* Admin notes system for internal team collaboration
+* Status tracking (unread, read, sent, email failed) for all submissions
+* Bulk actions for efficient submission management
+* Dashboard widget showing recent submissions and statistics
+* Admin notifications for unread submissions throughout admin area
+* Email integration with direct "Reply via Email" functionality
+* File attachment tracking and display in submission details
+* Automatic submission ID references in email subject lines
+* Enhanced database security with prepared statements and data sanitization
+* Complete submission data cleanup during plugin uninstall
+* Professional admin interface with pagination and responsive design
 
 = 1.4.4 =
 * **🧹 ENHANCED CLEANUP SYSTEM**
@@ -404,6 +547,9 @@ Visit FormSpammerTrap.com for support with the core FormSpammerTrap system.
 
 == Upgrade Notice ==
 
+= 1.5.0 =
+🆕 Major Feature Update! Adds complete Form Submissions Management System with dashboard, search, filtering, admin notes, status tracking, and email integration. All form submissions are now automatically saved and manageable through a professional admin interface. Highly recommended update for enhanced form management capabilities.
+
 = 1.4.4 =
 🧹 Enhanced cleanup system! Now completely removes upload folders and all contents during plugin deletion. Automatic recursive cleanup ensures zero leftover files. Update recommended for complete data removal capability.
 
@@ -423,12 +569,21 @@ Initial release of FormSpammerTrap Contact Form plugin.
 
 This plugin:
 * Processes form submissions and sends them via email
+* **🆕 Stores all form submissions in the database for admin management**
 * May temporarily store uploaded files based on retention settings
 * Uses session data temporarily for spam protection
 * May log basic form submission data if logging is enabled
 * Automatically deletes uploaded files according to configured retention periods
-* **🆕 Completely removes ALL data when plugin is deleted**
+* **🆕 Completely removes ALL data including form submissions when plugin is deleted**
 * Respects visitor privacy while maintaining security
+
+**🆕 Form Submissions Privacy:**
+* All form submissions are stored securely in your site's database
+* Only site administrators can access the submissions dashboard
+* All data is properly sanitized and validated before storage
+* Submissions include visitor IP addresses for security purposes
+* Admin notes are private and not visible to form submitters
+* **Complete removal of all submission data when plugin is uninstalled**
 
 **File Upload Privacy:**
 * Uploaded files are automatically protected from direct URL access
@@ -437,7 +592,7 @@ This plugin:
 * All file handling complies with GDPR requirements when using recommended settings
 * **Complete removal of all files and data when plugin is uninstalled**
 
-Form submissions are processed according to your site's privacy policy. Consider adding appropriate privacy notices for form users, especially regarding file uploads and retention periods.
+Form submissions are processed according to your site's privacy policy. Consider adding appropriate privacy notices for form users, especially regarding data storage, file uploads, and retention periods.
 
 == Credits ==
 
@@ -447,6 +602,7 @@ Form submissions are processed according to your site's privacy policy. Consider
 * Follows ClassicPress/Wordpress coding standards and best practices
 * Security features designed with GDPR compliance in mind
 * Enhanced cleanup system ensures responsible data management
+* **🆕 Form submissions system designed with security and privacy in mind**
 
 == License ==
 
@@ -470,10 +626,18 @@ wp-content/plugins/formspammertrap-plugin/
 └── readme.txt
 ```
 
+**🆕 Database Implementation:**
+* **Submissions Table:** `wp_fst_submissions` (created automatically on activation)
+* **Table Structure:** Includes all form data, technical information, and admin notes
+* **Security:** All queries use prepared statements and proper data sanitization
+* **Performance:** Indexed fields for efficient searching and filtering
+* **Privacy:** Complete table removal during plugin uninstall
+
 **🆕 Cleanup Implementation:**
 * Enhanced recursive folder removal with subdirectory support
 * Safe database table cleanup using pattern matching
 * Complete options cleanup (plugin + FormSpammerTrap core)
+* **Form submissions table and data removal**
 * Automatic transients and cached data removal
 * Cron job cleanup and scheduled task removal
 * Comprehensive logging of all cleanup operations
@@ -484,10 +648,20 @@ wp-content/plugins/formspammertrap-plugin/
 * File extension validation prevents dangerous uploads
 * Session-based protection prevents bot submissions
 * Automatic directory protection creation
+* **Secure form submission storage with validation**
+* **Admin-only access to submissions dashboard**
+* **XSS and CSRF protection for all admin functions**
 * **Complete security cleanup on plugin removal**
 
-**Database:**
-No database tables are created by default. All settings are stored in ClassicPress options. Uploaded files are stored in the file system with automatic cleanup. All database entries are completely removed when plugin is deleted.
+**🆕 Submissions Dashboard:**
+* Professional WordPress-style admin interface
+* Pagination for handling large numbers of submissions
+* Advanced search across all form fields
+* Status filtering and bulk actions
+* Individual submission detailed view
+* Admin notes system with update functionality
+* Email integration for direct communication
+* Dashboard widget with recent submissions and statistics
 
 **Cron Jobs:**
 * Daily cleanup job: `fst_cleanup_uploads`
@@ -500,6 +674,7 @@ Monitor your error logs during plugin deletion to see detailed cleanup reports:
 ```
 FormSpammerTrap Plugin: Starting comprehensive uninstall cleanup process
 FormSpammerTrap Plugin: Successfully removed upload folder 'fst-uploads' and X files
+FormSpammerTrap Plugin: Removed submissions table: wp_fst_submissions
 FormSpammerTrap Plugin: Removed X plugin-specific options
 FormSpammerTrap Plugin: Removed X FormSpammerTrap core options
 FormSpammerTrap Plugin: Cleaned up FormSpammerTrap transients
@@ -509,6 +684,14 @@ FormSpammerTrap Plugin: Comprehensive uninstall cleanup completed
 == Advanced Configuration ==
 
 **For Advanced Users:**
+
+**🆕 Submissions Management:**
+The submissions system is designed for security and performance:
+* All form data is stored with proper validation and sanitization
+* Database queries use WordPress prepared statements for security
+* Admin interface includes nonce verification for all actions
+* Bulk operations are optimized for handling large datasets
+* Search functionality uses efficient database indexing
 
 **Maximum Security Setup:**
 For highest security, consider moving the upload folder outside your web root directory:
@@ -524,9 +707,17 @@ The retention system can be customized for specific compliance requirements. Con
 * Consider additional server-level upload restrictions
 * Monitor disk usage if allowing large file uploads
 * Implement backup procedures for important uploaded files before plugin deletion
+* **🆕 Consider database backup procedures for form submissions before plugin deletion**
 
 **🆕 Cleanup Customization:**
 The cleanup system is designed to be safe and comprehensive. Advanced users can modify cleanup patterns in the plugin source code, but this is not recommended as it may affect the safety of the cleanup process.
+
+**🆕 Submissions Database Optimization:**
+For sites expecting high submission volumes:
+* Monitor database size and performance
+* Consider implementing custom archiving procedures for old submissions
+* Review server resources if storing submissions long-term
+* Database table is optimized with indexes for efficient searching
 
 == Donations ==
 
@@ -537,6 +728,7 @@ If you find this plugin useful, consider supporting:
 
 ---
 
+**🆕 A Special Thank You:**
+The Form Submissions Management System was developed through collaborative effort and community feedback. We appreciate all users who contribute to making this plugin better!
 
 Thank you for using FormSpammerTrap Contact Form!
-

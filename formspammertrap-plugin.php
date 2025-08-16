@@ -18,23 +18,33 @@ if (!defined('ABSPATH')) {
 class FormSpammerTrapPlugin {
     
     public function __construct() {
-        add_action('init', array($this, 'init'));
-        add_action('wp_enqueue_scripts', array($this, 'enqueue_scripts'));
-        add_shortcode('formspammertrap', array($this, 'formspammertrap_shortcode'));
-        add_action('admin_menu', array($this, 'add_admin_menu'));
-        register_activation_hook(__FILE__, array($this, 'activate'));
-		register_uninstall_hook(__FILE__, array('FormSpammerTrapPlugin', 'uninstall'));
-        
-        // Security and cleanup features
-        add_action('wp', array($this, 'schedule_cleanup'));
-        add_action('fst_cleanup_uploads', array($this, 'cleanup_old_uploads'));
-        
-        // Hook to inject JavaScript enhancements AFTER FormSpammerTrap loads
-        add_action('wp_footer', array($this, 'inject_javascript_enhancements'), 999);
-        
-        // Suppress the specific FormSpammerTrap warning that occurs after FST_MAIL_ALT
-        add_action('init', array($this, 'setup_error_handler'));
-    }
+    add_action('init', array($this, 'init'));
+    add_action('wp_enqueue_scripts', array($this, 'enqueue_scripts'));
+    add_shortcode('formspammertrap', array($this, 'formspammertrap_shortcode'));
+    add_action('admin_menu', array($this, 'add_admin_menu'));
+    
+    // NEW: Add submissions submenu
+    add_action('admin_menu', array($this, 'add_submissions_menu'), 10);
+    
+    register_activation_hook(__FILE__, array($this, 'activate'));
+    register_uninstall_hook(__FILE__, array('FormSpammerTrapPlugin', 'uninstall'));
+    
+    // Security and cleanup features
+    add_action('wp', array($this, 'schedule_cleanup'));
+    add_action('fst_cleanup_uploads', array($this, 'cleanup_old_uploads'));
+    
+    // Hook to inject JavaScript enhancements AFTER FormSpammerTrap loads
+    add_action('wp_footer', array($this, 'inject_javascript_enhancements'), 999);
+    
+    // Suppress the specific FormSpammerTrap warning that occurs after FST_MAIL_ALT
+    add_action('init', array($this, 'setup_error_handler'));
+    
+    // NEW: Add admin notices for unread submissions
+    add_action('admin_notices', array($this, 'show_unread_submissions_notice'));
+    
+    // NEW: Add dashboard widget
+    add_action('wp_dashboard_setup', array($this, 'add_dashboard_widget'));
+}
     
     /**
      * Setup custom error handler to suppress the specific FormSpammerTrap warning
@@ -336,6 +346,491 @@ class FormSpammerTrapPlugin {
             'formspammertrap-settings',
             array($this, 'admin_page')
         );
+    }
+	
+	/**
+     * Add submenu for viewing submissions
+     */
+    public function add_submissions_menu() {
+        add_submenu_page(
+            'options-general.php',      // Parent slug (Settings menu)
+            'Form Submissions',         // Page title
+            'Form Submissions',         // Menu title
+            'manage_options',           // Capability
+            'fst-submissions',          // Menu slug
+            array($this, 'submissions_page') // Callback
+        );
+    }
+
+    /**
+     * Display the submissions page
+     */
+    public function submissions_page() {
+        global $wpdb;
+        
+        $table_name = $wpdb->prefix . 'fst_submissions';
+        
+        // Handle actions
+        if (isset($_GET['action']) && isset($_GET['submission_id']) && wp_verify_nonce($_GET['_wpnonce'], 'fst_submission_action')) {
+            $submission_id = intval($_GET['submission_id']);
+            $action = sanitize_text_field($_GET['action']);
+            
+            switch ($action) {
+                case 'mark_read':
+                    $wpdb->update($table_name, array('status' => 'read'), array('id' => $submission_id));
+                    echo '<div class="notice notice-success"><p>Submission marked as read.</p></div>';
+                    break;
+                case 'mark_unread':
+                    $wpdb->update($table_name, array('status' => 'unread'), array('id' => $submission_id));
+                    echo '<div class="notice notice-success"><p>Submission marked as unread.</p></div>';
+                    break;
+                case 'delete':
+                    $wpdb->delete($table_name, array('id' => $submission_id));
+                    echo '<div class="notice notice-success"><p>Submission deleted.</p></div>';
+                    break;
+            }
+        }
+        
+        // Handle bulk actions
+        if (isset($_POST['bulk_action']) && isset($_POST['submission_ids']) && wp_verify_nonce($_POST['_wpnonce'], 'fst_bulk_actions')) {
+            $bulk_action = sanitize_text_field($_POST['bulk_action']);
+            $submission_ids = array_map('intval', $_POST['submission_ids']);
+            
+            if (!empty($submission_ids) && $bulk_action !== '-1') {
+                $ids_placeholder = implode(',', array_fill(0, count($submission_ids), '%d'));
+                
+                switch ($bulk_action) {
+                    case 'mark_read':
+                        $wpdb->query($wpdb->prepare("UPDATE $table_name SET status = 'read' WHERE id IN ($ids_placeholder)", $submission_ids));
+                        echo '<div class="notice notice-success"><p>' . count($submission_ids) . ' submissions marked as read.</p></div>';
+                        break;
+                    case 'mark_unread':
+                        $wpdb->query($wpdb->prepare("UPDATE $table_name SET status = 'unread' WHERE id IN ($ids_placeholder)", $submission_ids));
+                        echo '<div class="notice notice-success"><p>' . count($submission_ids) . ' submissions marked as unread.</p></div>';
+                        break;
+                    case 'delete':
+                        $wpdb->query($wpdb->prepare("DELETE FROM $table_name WHERE id IN ($ids_placeholder)", $submission_ids));
+                        echo '<div class="notice notice-success"><p>' . count($submission_ids) . ' submissions deleted.</p></div>';
+                        break;
+                }
+            }
+        }
+        
+        // Get current page and items per page
+        $current_page = isset($_GET['paged']) ? max(1, intval($_GET['paged'])) : 1;
+        $items_per_page = 20;
+        $offset = ($current_page - 1) * $items_per_page;
+        
+        // Get filter parameters
+        $status_filter = isset($_GET['status']) ? sanitize_text_field($_GET['status']) : '';
+        $search = isset($_GET['s']) ? sanitize_text_field($_GET['s']) : '';
+        
+        // Build WHERE clause
+        $where_conditions = array();
+        $where_values = array();
+        
+        if (!empty($status_filter)) {
+            $where_conditions[] = "status = %s";
+            $where_values[] = $status_filter;
+        }
+        
+        if (!empty($search)) {
+            $where_conditions[] = "(visitor_name LIKE %s OR visitor_email LIKE %s OR subject LIKE %s OR message LIKE %s)";
+            $search_term = '%' . $wpdb->esc_like($search) . '%';
+            $where_values[] = $search_term;
+            $where_values[] = $search_term;
+            $where_values[] = $search_term;
+            $where_values[] = $search_term;
+        }
+        
+        $where_clause = !empty($where_conditions) ? 'WHERE ' . implode(' AND ', $where_conditions) : '';
+        
+        // Get total count
+        $total_query = "SELECT COUNT(*) FROM $table_name $where_clause";
+        if (!empty($where_values)) {
+            $total_items = $wpdb->get_var($wpdb->prepare($total_query, $where_values));
+        } else {
+            $total_items = $wpdb->get_var($total_query);
+        }
+        
+        // Get submissions for current page
+        $submissions_query = "SELECT * FROM $table_name $where_clause ORDER BY submission_date DESC LIMIT %d OFFSET %d";
+        $query_values = array_merge($where_values, array($items_per_page, $offset));
+        $submissions = $wpdb->get_results($wpdb->prepare($submissions_query, $query_values));
+        
+        // Calculate pagination
+        $total_pages = ceil($total_items / $items_per_page);
+        ?>
+        <div class="wrap">
+            <h1>Form Submissions 
+                <?php if (!empty($status_filter)): ?>
+                    <span class="subtitle">- <?php echo ucfirst($status_filter); ?></span>
+                <?php endif; ?>
+            </h1>
+            
+            <!-- Filters and Search -->
+            <div class="tablenav top">
+                <div class="alignleft actions">
+                    <select name="status" id="filter-by-status">
+                        <option value="">All Statuses</option>
+                        <option value="unread" <?php selected($status_filter, 'unread'); ?>>Unread</option>
+                        <option value="read" <?php selected($status_filter, 'read'); ?>>Read</option>
+                        <option value="sent" <?php selected($status_filter, 'sent'); ?>>Email Sent</option>
+                        <option value="email_failed" <?php selected($status_filter, 'email_failed'); ?>>Email Failed</option>
+                    </select>
+                    <input type="submit" class="button" value="Filter" onclick="this.form.submit();">
+                </div>
+                
+                <p class="search-box">
+                    <input type="search" name="s" value="<?php echo esc_attr($search); ?>" placeholder="Search submissions...">
+                    <input type="submit" class="button" value="Search">
+                </p>
+            </div>
+            
+            <form method="get" action="">
+                <input type="hidden" name="page" value="fst-submissions">
+                <input type="hidden" name="status" value="<?php echo esc_attr($status_filter); ?>">
+                <input type="hidden" name="s" value="<?php echo esc_attr($search); ?>">
+            </form>
+            
+            <?php if (empty($submissions)): ?>
+                <div class="notice notice-info">
+                    <p><strong>No submissions found.</strong> 
+                    <?php if (!empty($status_filter) || !empty($search)): ?>
+                        Try adjusting your filters.
+                    <?php else: ?>
+                        Submissions will appear here once visitors start using your contact form.
+                    <?php endif; ?>
+                    </p>
+                </div>
+            <?php else: ?>
+                
+                <form method="post" action="">
+                    <?php wp_nonce_field('fst_bulk_actions'); ?>
+                    
+                    <div class="tablenav top">
+                        <div class="alignleft actions bulkactions">
+                            <select name="bulk_action">
+                                <option value="-1">Bulk Actions</option>
+                                <option value="mark_read">Mark as Read</option>
+                                <option value="mark_unread">Mark as Unread</option>
+                                <option value="delete">Delete</option>
+                            </select>
+                            <input type="submit" class="button action" value="Apply">
+                        </div>
+                        
+                        <div class="tablenav-pages">
+                            <span class="displaying-num"><?php echo $total_items; ?> items</span>
+                            <?php
+                            if ($total_pages > 1) {
+                                $page_links = paginate_links(array(
+                                    'base' => add_query_arg('paged', '%#%'),
+                                    'format' => '',
+                                    'prev_text' => '&laquo;',
+                                    'next_text' => '&raquo;',
+                                    'total' => $total_pages,
+                                    'current' => $current_page,
+                                    'type' => 'list'
+                                ));
+                                echo $page_links;
+                            }
+                            ?>
+                        </div>
+                    </div>
+                    
+                    <table class="wp-list-table widefat fixed striped">
+                        <thead>
+                            <tr>
+                                <td class="manage-column column-cb check-column">
+                                    <input type="checkbox" id="cb-select-all-1">
+                                </td>
+                                <th scope="col" class="manage-column">Status</th>
+                                <th scope="col" class="manage-column">Date</th>
+                                <th scope="col" class="manage-column">From</th>
+                                <th scope="col" class="manage-column">Subject</th>
+                                <th scope="col" class="manage-column">Message Preview</th>
+                                <th scope="col" class="manage-column">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php foreach ($submissions as $submission): ?>
+                                <tr class="<?php echo $submission->status === 'unread' ? 'unread' : ''; ?>">
+                                    <th scope="row" class="check-column">
+                                        <input type="checkbox" name="submission_ids[]" value="<?php echo $submission->id; ?>">
+                                    </th>
+                                    <td>
+                                        <?php
+                                        $status_colors = array(
+                                            'unread' => '#d63638',
+                                            'read' => '#00a32a',
+                                            'sent' => '#2271b1',
+                                            'email_failed' => '#d63638'
+                                        );
+                                        $status_color = isset($status_colors[$submission->status]) ? $status_colors[$submission->status] : '#646970';
+                                        ?>
+                                        <span style="color: <?php echo $status_color; ?>; font-weight: bold;">
+                                            <?php echo ucfirst(str_replace('_', ' ', $submission->status)); ?>
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <strong><?php echo date('M j, Y', strtotime($submission->submission_date)); ?></strong><br>
+                                        <span style="color: #646970;"><?php echo date('g:i a', strtotime($submission->submission_date)); ?></span>
+                                    </td>
+                                    <td>
+                                        <strong><?php echo esc_html($submission->visitor_name); ?></strong><br>
+                                        <a href="mailto:<?php echo esc_attr($submission->visitor_email); ?>"><?php echo esc_html($submission->visitor_email); ?></a>
+                                    </td>
+                                    <td>
+                                        <strong><?php echo esc_html($submission->subject); ?></strong>
+                                    </td>
+                                    <td>
+                                        <?php 
+                                        $preview = wp_trim_words(strip_tags($submission->message), 15, '...');
+                                        echo esc_html($preview);
+                                        ?>
+                                    </td>
+                                    <td>
+                                        <a href="<?php echo add_query_arg(array('view' => $submission->id)); ?>" class="button button-small">View</a>
+                                        
+                                        <?php if ($submission->status === 'unread'): ?>
+                                            <a href="<?php echo wp_nonce_url(add_query_arg(array('action' => 'mark_read', 'submission_id' => $submission->id)), 'fst_submission_action'); ?>" class="button button-small">Mark Read</a>
+                                        <?php else: ?>
+                                            <a href="<?php echo wp_nonce_url(add_query_arg(array('action' => 'mark_unread', 'submission_id' => $submission->id)), 'fst_submission_action'); ?>" class="button button-small">Mark Unread</a>
+                                        <?php endif; ?>
+                                        
+                                        <a href="<?php echo wp_nonce_url(add_query_arg(array('action' => 'delete', 'submission_id' => $submission->id)), 'fst_submission_action'); ?>" class="button button-small" onclick="return confirm('Are you sure you want to delete this submission?');">Delete</a>
+                                    </td>
+                                </tr>
+                            <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                    
+                    <div class="tablenav bottom">
+                        <div class="alignleft actions bulkactions">
+                            <select name="bulk_action">
+                                <option value="-1">Bulk Actions</option>
+                                <option value="mark_read">Mark as Read</option>
+                                <option value="mark_unread">Mark as Unread</option>
+                                <option value="delete">Delete</option>
+                            </select>
+                            <input type="submit" class="button action" value="Apply">
+                        </div>
+                        
+                        <div class="tablenav-pages">
+                            <?php
+                            if ($total_pages > 1) {
+                                $page_links = paginate_links(array(
+                                    'base' => add_query_arg('paged', '%#%'),
+                                    'format' => '',
+                                    'prev_text' => '&laquo;',
+                                    'next_text' => '&raquo;',
+                                    'total' => $total_pages,
+                                    'current' => $current_page,
+                                    'type' => 'list'
+                                ));
+                                echo $page_links;
+                            }
+                            ?>
+                        </div>
+                    </div>
+                </form>
+                
+            <?php endif; ?>
+            
+            <?php
+            // Show individual submission view if requested
+            if (isset($_GET['view'])) {
+                $this->show_submission_details(intval($_GET['view']));
+            }
+            ?>
+            
+        </div>
+        
+        <style>
+        .wp-list-table tr.unread {
+            background-color: #f0f8ff;
+            font-weight: bold;
+        }
+        .wp-list-table .column-cb {
+            width: 2.2em;
+        }
+        .tablenav .actions {
+            padding: 2px 8px 0 0;
+        }
+        .search-box {
+            float: right;
+            margin: 0;
+        }
+        .search-box input[type="search"] {
+            width: 280px;
+        }
+        </style>
+        
+        <script>
+        jQuery(document).ready(function($) {
+            // Handle select all checkbox
+            $('#cb-select-all-1').on('change', function() {
+                $('input[name="submission_ids[]"]').prop('checked', this.checked);
+            });
+            
+            // Handle filter form submission
+            $('#filter-by-status').on('change', function() {
+                var url = new URL(window.location);
+                url.searchParams.set('status', this.value);
+                url.searchParams.delete('paged'); // Reset to first page
+                window.location = url;
+            });
+        });
+        </script>
+        <?php
+    }
+
+    /**
+     * Show individual submission details
+     */
+    public function show_submission_details($submission_id) {
+        global $wpdb;
+        
+        $table_name = $wpdb->prefix . 'fst_submissions';
+        $submission = $wpdb->get_row($wpdb->prepare("SELECT * FROM $table_name WHERE id = %d", $submission_id));
+        
+        if (!$submission) {
+            echo '<div class="notice notice-error"><p>Submission not found.</p></div>';
+            return;
+        }
+        
+        // Mark as read when viewed
+        if ($submission->status === 'unread') {
+            $wpdb->update($table_name, array('status' => 'read'), array('id' => $submission_id));
+            $submission->status = 'read';
+        }
+        
+        // Handle admin notes update
+        if (isset($_POST['update_notes']) && wp_verify_nonce($_POST['_wpnonce'], 'fst_update_notes')) {
+            $admin_notes = wp_kses_post($_POST['admin_notes']);
+            $wpdb->update($table_name, array('admin_notes' => $admin_notes), array('id' => $submission_id));
+            $submission->admin_notes = $admin_notes;
+            echo '<div class="notice notice-success"><p>Admin notes updated successfully.</p></div>';
+        }
+        
+        ?>
+        <div class="notice notice-info" style="margin-top: 20px;">
+            <h2>Submission Details #<?php echo $submission->id; ?></h2>
+            
+            <div style="background: white; padding: 20px; border: 1px solid #ddd; border-radius: 5px; margin: 15px 0;">
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
+                    <div>
+                        <h3>Visitor Information</h3>
+                        <table class="form-table">
+                            <tr>
+                                <th>Name:</th>
+                                <td><strong><?php echo esc_html($submission->visitor_name); ?></strong></td>
+                            </tr>
+                            <tr>
+                                <th>Email:</th>
+                                <td><a href="mailto:<?php echo esc_attr($submission->visitor_email); ?>"><?php echo esc_html($submission->visitor_email); ?></a></td>
+                            </tr>
+                            <tr>
+                                <th>Subject:</th>
+                                <td><?php echo esc_html($submission->subject); ?></td>
+                            </tr>
+                            <tr>
+                                <th>Submitted:</th>
+                                <td><?php echo date('F j, Y \a\t g:i a', strtotime($submission->submission_date)); ?></td>
+                            </tr>
+                            <tr>
+                                <th>Status:</th>
+                                <td>
+                                    <?php
+                                    $status_colors = array(
+                                        'unread' => '#d63638',
+                                        'read' => '#00a32a', 
+                                        'sent' => '#2271b1',
+                                        'email_failed' => '#d63638'
+                                    );
+                                    $status_color = isset($status_colors[$submission->status]) ? $status_colors[$submission->status] : '#646970';
+                                    ?>
+                                    <span style="color: <?php echo $status_color; ?>; font-weight: bold;">
+                                        <?php echo ucfirst(str_replace('_', ' ', $submission->status)); ?>
+                                    </span>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                    
+                    <div>
+                        <h3>Technical Information</h3>
+                        <table class="form-table">
+                            <tr>
+                                <th>IP Address:</th>
+                                <td><?php echo esc_html($submission->visitor_ip); ?></td>
+                            </tr>
+                            <tr>
+                                <th>User Agent:</th>
+                                <td style="word-break: break-all; font-size: 11px;"><?php echo esc_html($submission->user_agent); ?></td>
+                            </tr>
+                            <?php if (!empty($submission->attachments)): ?>
+                            <tr>
+                                <th>Attachments:</th>
+                                <td>
+                                    <?php
+                                    $attachments = json_decode($submission->attachments, true);
+                                    if (is_array($attachments)) {
+                                        foreach ($attachments as $attachment) {
+                                            $size = $attachment['size'] < 1024 ? $attachment['size'] . ' bytes' : 
+                                                   ($attachment['size'] < 1048576 ? round($attachment['size']/1024, 1) . ' KB' : 
+                                                   round($attachment['size']/1048576, 1) . ' MB');
+                                            echo '<div>📎 ' . esc_html($attachment['filename']) . ' (' . $size . ')</div>';
+                                        }
+                                    }
+                                    ?>
+                                </td>
+                            </tr>
+                            <?php endif; ?>
+                        </table>
+                    </div>
+                </div>
+                
+                <div style="margin-bottom: 20px;">
+                    <h3>Message</h3>
+                    <div style="background: #f9f9f9; padding: 15px; border-left: 4px solid #2271b1; white-space: pre-wrap; font-family: inherit;">
+<?php echo esc_html($submission->message); ?>
+                    </div>
+                </div>
+                
+                <?php if (!empty($submission->additional_fields)): ?>
+                <div style="margin-bottom: 20px;">
+                    <h3>Additional Fields</h3>
+                    <table class="form-table">
+                        <?php
+                        $additional_fields = json_decode($submission->additional_fields, true);
+                        if (is_array($additional_fields)) {
+                            foreach ($additional_fields as $label => $value) {
+                                echo '<tr><th>' . esc_html($label) . ':</th><td>' . esc_html($value) . '</td></tr>';
+                            }
+                        }
+                        ?>
+                    </table>
+                </div>
+                <?php endif; ?>
+                
+                <div style="margin-bottom: 20px;">
+                    <h3>Admin Notes</h3>
+                    <form method="post" action="">
+                        <?php wp_nonce_field('fst_update_notes'); ?>
+                        <textarea name="admin_notes" rows="4" style="width: 100%;" placeholder="Add your notes about this submission..."><?php echo esc_textarea($submission->admin_notes); ?></textarea>
+                        <p>
+                            <input type="submit" name="update_notes" class="button button-primary" value="Update Notes">
+                            <a href="<?php echo remove_query_arg('view'); ?>" class="button">← Back to List</a>
+                            <a href="mailto:<?php echo esc_attr($submission->visitor_email); ?>?subject=Re: <?php echo esc_attr($submission->subject); ?>" class="button">Reply via Email</a>
+                        </p>
+                    </form>
+                </div>
+                
+            </div>
+        </div>
+        <?php
     }
     
     public function admin_page() {
@@ -678,6 +1173,130 @@ class FormSpammerTrapPlugin {
         
         return round($size, $precision) . ' ' . $units[$i];
     }
+	
+	/**
+     * Create the submissions table on plugin activation
+     */
+    public function create_submissions_table() {
+        global $wpdb;
+        
+        $table_name = $wpdb->prefix . 'fst_submissions';
+        
+        $charset_collate = $wpdb->get_charset_collate();
+        
+        $sql = "CREATE TABLE $table_name (
+            id mediumint(9) NOT NULL AUTO_INCREMENT,
+            submission_date datetime DEFAULT CURRENT_TIMESTAMP NOT NULL,
+            visitor_name varchar(100) NOT NULL,
+            visitor_email varchar(100) NOT NULL,
+            subject varchar(200) NOT NULL,
+            message text NOT NULL,
+            visitor_ip varchar(45),
+            user_agent text,
+            additional_fields longtext,
+            attachments text,
+            status varchar(20) DEFAULT 'unread' NOT NULL,
+            admin_notes text,
+            PRIMARY KEY (id),
+            KEY submission_date (submission_date),
+            KEY status (status),
+            KEY visitor_email (visitor_email)
+        ) $charset_collate;";
+        
+        require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
+        dbDelta($sql);
+        
+        // Create an option to track the table version
+        add_option('fst_submissions_table_version', '1.0');
+    }
+
+    /**
+     * Save form submission to database
+     */
+    public function fst_save_submission_to_db($data = array()) {
+        global $wpdb;
+        
+        $table_name = $wpdb->prefix . 'fst_submissions';
+        
+        // Extract form data, with fallbacks for missing fields
+        $visitor_name = isset($data['your_name']) ? sanitize_text_field($data['your_name']) : 
+                       (isset($_POST['your_name']) ? sanitize_text_field($_POST['your_name']) : 'Unknown');
+        
+        $visitor_email = isset($data['your_email']) ? sanitize_email($data['your_email']) : 
+                        (isset($_POST['your_email']) ? sanitize_email($_POST['your_email']) : '');
+        
+        $subject = isset($data['your_subject']) ? sanitize_text_field($data['your_subject']) : 
+                  (isset($_POST['your_subject']) ? sanitize_text_field($_POST['your_subject']) : 'No Subject');
+        
+        $message = isset($data['your_message']) ? wp_kses_post($data['your_message']) : 
+                  (isset($_POST['message']) ? wp_kses_post($_POST['message']) : '');
+        
+        // Get visitor IP (with proxy support)
+        $visitor_ip = '';
+        if (!empty($_SERVER['HTTP_CLIENT_IP'])) {
+            $visitor_ip = $_SERVER['HTTP_CLIENT_IP'];
+        } elseif (!empty($_SERVER['HTTP_X_FORWARDED_FOR'])) {
+            $visitor_ip = $_SERVER['HTTP_X_FORWARDED_FOR'];
+        } elseif (!empty($_SERVER['REMOTE_ADDR'])) {
+            $visitor_ip = $_SERVER['REMOTE_ADDR'];
+        }
+        $visitor_ip = sanitize_text_field($visitor_ip);
+        
+        // Get user agent
+        $user_agent = isset($_SERVER['HTTP_USER_AGENT']) ? sanitize_text_field($_SERVER['HTTP_USER_AGENT']) : '';
+        
+        // Collect additional fields from custom fields
+        $additional_fields = array();
+        if (defined('FST_XCUSTOM_FIELDS') && is_array(FST_XCUSTOM_FIELDS)) {
+            foreach (FST_XCUSTOM_FIELDS as $field) {
+                $field_name = $field['NAME'];
+                if (isset($_POST[$field_name]) && !in_array($field_name, array('your_name', 'your_email', 'your_subject', 'message'))) {
+                    $additional_fields[$field['LABELMSG']] = sanitize_text_field($_POST[$field_name]);
+                }
+            }
+        }
+        
+        // Handle file attachments
+        $attachments = array();
+        if (isset($_FILES['fst_uploadfile']) && !empty($_FILES['fst_uploadfile']['name'][0])) {
+            for ($i = 0; $i < count($_FILES['fst_uploadfile']['name']); $i++) {
+                if (!empty($_FILES['fst_uploadfile']['name'][$i])) {
+                    $attachments[] = array(
+                        'filename' => sanitize_file_name($_FILES['fst_uploadfile']['name'][$i]),
+                        'size' => $_FILES['fst_uploadfile']['size'][$i],
+                        'type' => $_FILES['fst_uploadfile']['type'][$i]
+                    );
+                }
+            }
+        }
+        
+        // Insert into database
+        $result = $wpdb->insert(
+            $table_name,
+            array(
+                'visitor_name' => $visitor_name,
+                'visitor_email' => $visitor_email,
+                'subject' => $subject,
+                'message' => $message,
+                'visitor_ip' => $visitor_ip,
+                'user_agent' => $user_agent,
+                'additional_fields' => !empty($additional_fields) ? wp_json_encode($additional_fields) : '',
+                'attachments' => !empty($attachments) ? wp_json_encode($attachments) : '',
+                'status' => 'unread'
+            ),
+            array(
+                '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s'
+            )
+        );
+        
+        if ($result === false) {
+            error_log('FormSpammerTrap Plugin: Failed to save submission to database - ' . $wpdb->last_error);
+            return false;
+        }
+        
+        error_log('FormSpammerTrap Plugin: Successfully saved submission ID ' . $wpdb->insert_id . ' from ' . $visitor_email);
+        return $wpdb->insert_id;
+    }
     
     public function display_installation_status() {
         $functions_file = plugin_dir_path(__FILE__) . 'includes/formspammertrap-contact-functions.php';
@@ -729,28 +1348,148 @@ class FormSpammerTrapPlugin {
         echo '</tbody></table>';
     }
     
+    /**
+     * Show admin notice for unread submissions
+     */
+    public function show_unread_submissions_notice() {
+        global $wpdb;
+        
+        // Only show on admin pages, not on the submissions page itself
+        if (!is_admin() || (isset($_GET['page']) && $_GET['page'] === 'fst-submissions')) {
+            return;
+        }
+        
+        $table_name = $wpdb->prefix . 'fst_submissions';
+        
+        // Check if table exists first
+        if ($wpdb->get_var("SHOW TABLES LIKE '$table_name'") != $table_name) {
+            return;
+        }
+        
+        $unread_count = $wpdb->get_var("SELECT COUNT(*) FROM $table_name WHERE status = 'unread'");
+        
+        if ($unread_count > 0) {
+            $submissions_url = admin_url('admin.php?page=fst-submissions&status=unread');
+            $message = sprintf(
+                _n(
+                    'You have %d unread contact form submission.',
+                    'You have %d unread contact form submissions.',
+                    $unread_count
+                ),
+                $unread_count
+            );
+            
+            echo '<div class="notice notice-info is-dismissible">';
+            echo '<p><strong>FormSpammerTrap:</strong> ' . $message . ' ';
+            echo '<a href="' . $submissions_url . '">View submissions &raquo;</a></p>';
+            echo '</div>';
+        }
+    }
+
+    /**
+     * Add dashboard widget for recent submissions
+     */
+    public function add_dashboard_widget() {
+        wp_add_dashboard_widget(
+            'fst_submissions_widget',
+            'Recent Contact Form Submissions',
+            array($this, 'dashboard_widget_content')
+        );
+    }
+
+    /**
+     * Dashboard widget content
+     */
+    public function dashboard_widget_content() {
+        global $wpdb;
+        
+        $table_name = $wpdb->prefix . 'fst_submissions';
+        
+        // Check if table exists
+        if ($wpdb->get_var("SHOW TABLES LIKE '$table_name'") != $table_name) {
+            echo '<p>No submissions table found. The contact form may not have been used yet.</p>';
+            return;
+        }
+        
+        // Get recent submissions
+        $recent_submissions = $wpdb->get_results("
+            SELECT id, visitor_name, visitor_email, subject, submission_date, status 
+            FROM $table_name 
+            ORDER BY submission_date DESC 
+            LIMIT 5
+        ");
+        
+        if (empty($recent_submissions)) {
+            echo '<p>No contact form submissions yet.</p>';
+            return;
+        }
+        
+        echo '<table style="width: 100%;">';
+        echo '<thead><tr><th>From</th><th>Subject</th><th>Date</th><th>Status</th></tr></thead>';
+        echo '<tbody>';
+        
+        foreach ($recent_submissions as $submission) {
+            $status_colors = array(
+                'unread' => '#d63638',
+                'read' => '#00a32a',
+                'sent' => '#2271b1',
+                'email_failed' => '#d63638'
+            );
+            $status_color = isset($status_colors[$submission->status]) ? $status_colors[$submission->status] : '#646970';
+            
+            echo '<tr>';
+            echo '<td><strong>' . esc_html($submission->visitor_name) . '</strong><br>';
+            echo '<small>' . esc_html($submission->visitor_email) . '</small></td>';
+            echo '<td>' . esc_html(wp_trim_words($submission->subject, 5)) . '</td>';
+            echo '<td>' . date('M j', strtotime($submission->submission_date)) . '</td>';
+            echo '<td><span style="color: ' . $status_color . '; font-weight: bold;">' . ucfirst(str_replace('_', ' ', $submission->status)) . '</span></td>';
+            echo '</tr>';
+        }
+        
+        echo '</tbody></table>';
+        
+        $submissions_url = admin_url('admin.php?page=fst-submissions');
+        echo '<p><a href="' . $submissions_url . '">View All Submissions &raquo;</a></p>';
+        
+        // Show stats
+        $total_submissions = $wpdb->get_var("SELECT COUNT(*) FROM $table_name");
+        $unread_count = $wpdb->get_var("SELECT COUNT(*) FROM $table_name WHERE status = 'unread'");
+        $today_count = $wpdb->get_var("SELECT COUNT(*) FROM $table_name WHERE DATE(submission_date) = CURDATE()");
+        
+        echo '<hr>';
+        echo '<p><strong>Quick Stats:</strong></p>';
+        echo '<ul>';
+        echo '<li>Total Submissions: ' . $total_submissions . '</li>';
+        echo '<li>Unread: ' . $unread_count . '</li>';
+        echo '<li>Today: ' . $today_count . '</li>';
+        echo '</ul>';
+    }
+    
     public function missing_functions_notice() {
         echo '<div class="notice notice-error"><p><strong>FormSpammerTrap:</strong> The formspammertrap-contact-functions.php file is missing. Please upload it to the includes/ folder in the plugin directory.</p></div>';
     }
     
     public function activate() {
-        // Set default options
-        add_option('fst_default_email', get_option('admin_email'));
-        add_option('fst_required_field_colors', 0);
-        add_option('fst_show_version', 0);
-        add_option('fst_custom_thanks_message', '');
-        add_option('fst_max_urls_allowed', 1);
-        add_option('fst_enable_reset_button', 0);
-        add_option('fst_enable_uploads', 0);
-        add_option('fst_upload_extensions', '.pdf,.jpg,.jpeg,.png,.gif,.doc,.docx');
-        add_option('fst_upload_folder', 'fst-uploads');
-        add_option('fst_file_retention_days', 30);
-        
-        // Schedule cleanup if uploads are enabled
-        if (!wp_next_scheduled('fst_cleanup_uploads')) {
-            wp_schedule_event(time(), 'daily', 'fst_cleanup_uploads');
-        }
+    // Set default options
+    add_option('fst_default_email', get_option('admin_email'));
+    add_option('fst_required_field_colors', 0);
+    add_option('fst_show_version', 0);
+    add_option('fst_custom_thanks_message', '');
+    add_option('fst_max_urls_allowed', 1);
+    add_option('fst_enable_reset_button', 0);
+    add_option('fst_enable_uploads', 0);
+    add_option('fst_upload_extensions', '.pdf,.jpg,.jpeg,.png,.gif,.doc,.docx');
+    add_option('fst_upload_folder', 'fst-uploads');
+    add_option('fst_file_retention_days', 30);
+    
+    // NEW: Create submissions table
+    $this->create_submissions_table();
+    
+    // Schedule cleanup if uploads are enabled
+    if (!wp_next_scheduled('fst_cleanup_uploads')) {
+        wp_schedule_event(time(), 'daily', 'fst_cleanup_uploads');
     }
+}
     
     /**
      * Create .htaccess file to protect upload folder
@@ -853,20 +1592,44 @@ Deny from all
         // 2. Clean up database tables (if contact saving was enabled)
         self::cleanup_database_tables();
         
-        // 3. Remove cron jobs
+        // 3. NEW: Clean up submissions table
+        self::cleanup_submissions_table();
+        
+        // 4. Remove cron jobs
         wp_clear_scheduled_hook('fst_cleanup_uploads');
         
-        // 4. Clean up all plugin options
+        // 5. Clean up all plugin options
         self::cleanup_plugin_options();
         
-        // 5. Clean up FormSpammerTrap core options (NEW)
+        // 6. Clean up FormSpammerTrap core options
         self::cleanup_formspammertrap_options();
         
-        // 6. Clean up transients
+        // 7. Clean up transients
         delete_transient('fst_mail_alt_called_' . date('Y-m-d'));
         delete_transient('fst_plugin_mail_alt_logged_' . date('Y-m-d'));
         
         error_log("FormSpammerTrap Plugin: Comprehensive uninstall cleanup completed");
+    }
+
+    /**
+     * Clean up submissions table on uninstall
+     */
+    private static function cleanup_submissions_table() {
+        global $wpdb;
+        
+        $table_name = $wpdb->prefix . 'fst_submissions';
+        
+        // Drop the submissions table
+        $result = $wpdb->query("DROP TABLE IF EXISTS $table_name");
+        
+        if ($result !== false) {
+            error_log("FormSpammerTrap Plugin: Removed submissions table: $table_name");
+        } else {
+            error_log("FormSpammerTrap Plugin: Failed to remove submissions table: $table_name");
+        }
+        
+        // Remove the table version option
+        delete_option('fst_submissions_table_version');
     }
 
     /**
@@ -1102,7 +1865,14 @@ Deny from all
  * CRITICAL: FST_MAIL_ALT function - FormSpammerTrap's built-in override system
  * This function completely replaces FormSpammerTrap's email sending when it exists
  */
+/**
+ * UPDATED: FST_MAIL_ALT function with submission saving
+ */
 function FST_MAIL_ALT($data = array()) {
+    // FIRST: Save submission to database (before email sending)
+    $plugin_instance = new FormSpammerTrapPlugin();
+    $submission_id = $plugin_instance->fst_save_submission_to_db($data);
+    
     // Use a more reliable logging mechanism to avoid spam
     $log_key = 'fst_mail_alt_called_' . date('Y-m-d');
     if (!get_transient($log_key)) {
@@ -1140,6 +1910,11 @@ function FST_MAIL_ALT($data = array()) {
     $from_name = !empty($message_elements['from_name']) ? $message_elements['from_name'] :
                  (defined('FST_FROM_NAME') ? FST_FROM_NAME : $_SERVER['HTTP_HOST']);
     
+    // Add submission ID to subject line for reference
+    if ($submission_id) {
+        $subject .= ' [Submission #' . $submission_id . ']';
+    }
+    
     // Load PHPMailer if not already loaded
     if (!class_exists('PHPMailer\PHPMailer\PHPMailer')) {
         $phpmailer_path = plugin_dir_path(__FILE__) . 'includes/phpmailer/';
@@ -1150,7 +1925,14 @@ function FST_MAIL_ALT($data = array()) {
         } else {
             // Fallback to system mail if PHPMailer not available
             $headers = "From: $from_email\r\nReply-To: " . $_POST['your_email'] . "\r\n";
-            return mail($recipient, $subject, $message_elements['message'], $headers);
+            $mail_result = mail($recipient, $subject, $message_elements['message'], $headers);
+            
+            // Update submission status based on email result
+            if ($submission_id) {
+                fst_update_submission_status($submission_id, $mail_result ? 'sent' : 'email_failed');
+            }
+            
+            return $mail_result;
         }
     }
     
@@ -1214,6 +1996,13 @@ function FST_MAIL_ALT($data = array()) {
             $message .= "<p>" . (isset($_POST['message']) ? nl2br(htmlspecialchars($_POST['message'])) : 'No message') . "</p>";
         }
         
+        // Add submission reference to email
+        if ($submission_id) {
+            $admin_url = admin_url('admin.php?page=fst-submissions&view=' . $submission_id);
+            $message .= "<hr><p><strong>Submission Reference:</strong> #" . $submission_id . "</p>";
+            $message .= "<p><a href='" . $admin_url . "'>View in Dashboard</a></p>";
+        }
+        
         // Handle file attachments
         $upload_status = "";
         if (get_option('fst_enable_uploads', 0) && isset($_FILES['fst_uploadfile']) && !empty($_FILES['fst_uploadfile']['tmp_name'][0])) {
@@ -1228,7 +2017,14 @@ function FST_MAIL_ALT($data = array()) {
         $mail->AltBody = strip_tags($message);
         
         // Send the email
-        if ($mail->send()) {
+        $mail_sent = $mail->send();
+        
+        // Update submission status based on email result
+        if ($submission_id) {
+            fst_update_submission_status($submission_id, $mail_sent ? 'sent' : 'email_failed');
+        }
+        
+        if ($mail_sent) {
             return true;
         } else {
             error_log("FormSpammerTrap Plugin: Email failed via FST_MAIL_ALT - " . $mail->ErrorInfo);
@@ -1237,8 +2033,31 @@ function FST_MAIL_ALT($data = array()) {
         
     } catch (Exception $e) {
         error_log("FormSpammerTrap Plugin: FST_MAIL_ALT exception - " . $e->getMessage());
+        
+        // Update submission status to indicate email failure
+        if ($submission_id) {
+            fst_update_submission_status($submission_id, 'email_failed');
+        }
+        
         return false;
     }
+}
+
+/**
+ * Update submission status
+ */
+function fst_update_submission_status($submission_id, $status) {
+    global $wpdb;
+    
+    $table_name = $wpdb->prefix . 'fst_submissions';
+    
+    $wpdb->update(
+        $table_name,
+        array('status' => $status),
+        array('id' => $submission_id),
+        array('%s'),
+        array('%d')
+    );
 }
 
 /**
