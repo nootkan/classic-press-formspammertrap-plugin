@@ -18,6 +18,9 @@ if (!defined('ABSPATH')) {
 class FormSpammerTrapPlugin {
     
     public function __construct() {
+	// Include export functionality
+    require_once plugin_dir_path(__FILE__) . 'formspammertrap-export.php';
+	require_once plugin_dir_path(__FILE__) . 'formspammertrap-import.php';
     add_action('init', array($this, 'init'));
     add_action('wp_enqueue_scripts', array($this, 'enqueue_scripts'));
     add_shortcode('formspammertrap', array($this, 'formspammertrap_shortcode'));
@@ -365,112 +368,132 @@ class FormSpammerTrapPlugin {
     /**
      * Display the submissions page
      */
-    public function submissions_page() {
-        global $wpdb;
+public function submissions_page() {
+    global $wpdb;
+    
+    $table_name = $wpdb->prefix . 'fst_submissions';
+    
+    // Handle individual actions (these work fine)
+    if (isset($_GET['action']) && isset($_GET['submission_id']) && wp_verify_nonce($_GET['_wpnonce'], 'fst_submission_action')) {
+        $submission_id = intval($_GET['submission_id']);
+        $action = sanitize_text_field($_GET['action']);
         
-        $table_name = $wpdb->prefix . 'fst_submissions';
+        switch ($action) {
+            case 'mark_read':
+                $wpdb->update($table_name, array('status' => 'read'), array('id' => $submission_id));
+                echo '<div class="notice notice-success"><p>Submission marked as read.</p></div>';
+                break;
+            case 'mark_unread':
+                $wpdb->update($table_name, array('status' => 'unread'), array('id' => $submission_id));
+                echo '<div class="notice notice-success"><p>Submission marked as unread.</p></div>';
+                break;
+            case 'delete':
+                $wpdb->delete($table_name, array('id' => $submission_id));
+                echo '<div class="notice notice-success"><p>Submission deleted.</p></div>';
+                break;
+        }
+    }
+    
+    // FIXED: Handle bulk actions
+    if (isset($_POST['bulk_action']) && isset($_POST['submission_ids']) && wp_verify_nonce($_POST['_wpnonce'], 'fst_bulk_actions')) {
+        $bulk_action = sanitize_text_field($_POST['bulk_action']);
+        $submission_ids = array_map('intval', $_POST['submission_ids']);
         
-        // Handle actions
-        if (isset($_GET['action']) && isset($_GET['submission_id']) && wp_verify_nonce($_GET['_wpnonce'], 'fst_submission_action')) {
-            $submission_id = intval($_GET['submission_id']);
-            $action = sanitize_text_field($_GET['action']);
+        // Check that we have valid data
+        if (!empty($submission_ids) && $bulk_action !== '-1') {
+            $ids_placeholder = implode(',', array_fill(0, count($submission_ids), '%d'));
+            $update_count = 0;
             
-            switch ($action) {
+            switch ($bulk_action) {
                 case 'mark_read':
-                    $wpdb->update($table_name, array('status' => 'read'), array('id' => $submission_id));
-                    echo '<div class="notice notice-success"><p>Submission marked as read.</p></div>';
+                    $update_count = $wpdb->query($wpdb->prepare("UPDATE $table_name SET status = 'read' WHERE id IN ($ids_placeholder)", $submission_ids));
+                    if ($update_count) {
+                        echo '<div class="notice notice-success"><p>' . $update_count . ' submissions marked as read.</p></div>';
+                    }
                     break;
                 case 'mark_unread':
-                    $wpdb->update($table_name, array('status' => 'unread'), array('id' => $submission_id));
-                    echo '<div class="notice notice-success"><p>Submission marked as unread.</p></div>';
+                    $update_count = $wpdb->query($wpdb->prepare("UPDATE $table_name SET status = 'unread' WHERE id IN ($ids_placeholder)", $submission_ids));
+                    if ($update_count) {
+                        echo '<div class="notice notice-success"><p>' . $update_count . ' submissions marked as unread.</p></div>';
+                    }
                     break;
                 case 'delete':
-                    $wpdb->delete($table_name, array('id' => $submission_id));
-                    echo '<div class="notice notice-success"><p>Submission deleted.</p></div>';
+                    $update_count = $wpdb->query($wpdb->prepare("DELETE FROM $table_name WHERE id IN ($ids_placeholder)", $submission_ids));
+                    if ($update_count) {
+                        echo '<div class="notice notice-success"><p>' . $update_count . ' submissions deleted.</p></div>';
+                    }
+                    break;
+                default:
+                    echo '<div class="notice notice-error"><p>Invalid bulk action selected.</p></div>';
                     break;
             }
-        }
-        
-        // Handle bulk actions
-        if (isset($_POST['bulk_action']) && isset($_POST['submission_ids']) && wp_verify_nonce($_POST['_wpnonce'], 'fst_bulk_actions')) {
-            $bulk_action = sanitize_text_field($_POST['bulk_action']);
-            $submission_ids = array_map('intval', $_POST['submission_ids']);
             
-            if (!empty($submission_ids) && $bulk_action !== '-1') {
-                $ids_placeholder = implode(',', array_fill(0, count($submission_ids), '%d'));
-                
-                switch ($bulk_action) {
-                    case 'mark_read':
-                        $wpdb->query($wpdb->prepare("UPDATE $table_name SET status = 'read' WHERE id IN ($ids_placeholder)", $submission_ids));
-                        echo '<div class="notice notice-success"><p>' . count($submission_ids) . ' submissions marked as read.</p></div>';
-                        break;
-                    case 'mark_unread':
-                        $wpdb->query($wpdb->prepare("UPDATE $table_name SET status = 'unread' WHERE id IN ($ids_placeholder)", $submission_ids));
-                        echo '<div class="notice notice-success"><p>' . count($submission_ids) . ' submissions marked as unread.</p></div>';
-                        break;
-                    case 'delete':
-                        $wpdb->query($wpdb->prepare("DELETE FROM $table_name WHERE id IN ($ids_placeholder)", $submission_ids));
-                        echo '<div class="notice notice-success"><p>' . count($submission_ids) . ' submissions deleted.</p></div>';
-                        break;
-                }
+            // Add some debugging (remove in production)
+            if ($update_count === false) {
+                echo '<div class="notice notice-error"><p>Database error occurred during bulk action. Action: ' . esc_html($bulk_action) . ', IDs: ' . esc_html(implode(',', $submission_ids)) . '</p></div>';
             }
-        }
-        
-        // Get current page and items per page
-        $current_page = isset($_GET['paged']) ? max(1, intval($_GET['paged'])) : 1;
-        $items_per_page = 20;
-        $offset = ($current_page - 1) * $items_per_page;
-        
-        // Get filter parameters
-        $status_filter = isset($_GET['status']) ? sanitize_text_field($_GET['status']) : '';
-        $search = isset($_GET['s']) ? sanitize_text_field($_GET['s']) : '';
-        
-        // Build WHERE clause
-        $where_conditions = array();
-        $where_values = array();
-        
-        if (!empty($status_filter)) {
-            $where_conditions[] = "status = %s";
-            $where_values[] = $status_filter;
-        }
-        
-        if (!empty($search)) {
-            $where_conditions[] = "(visitor_name LIKE %s OR visitor_email LIKE %s OR subject LIKE %s OR message LIKE %s)";
-            $search_term = '%' . $wpdb->esc_like($search) . '%';
-            $where_values[] = $search_term;
-            $where_values[] = $search_term;
-            $where_values[] = $search_term;
-            $where_values[] = $search_term;
-        }
-        
-        $where_clause = !empty($where_conditions) ? 'WHERE ' . implode(' AND ', $where_conditions) : '';
-        
-        // Get total count
-        $total_query = "SELECT COUNT(*) FROM $table_name $where_clause";
-        if (!empty($where_values)) {
-            $total_items = $wpdb->get_var($wpdb->prepare($total_query, $where_values));
         } else {
-            $total_items = $wpdb->get_var($total_query);
+            echo '<div class="notice notice-warning"><p>No submissions selected or invalid action.</p></div>';
         }
+    }
+    
+    // Get current page and items per page
+    $current_page = isset($_GET['paged']) ? max(1, intval($_GET['paged'])) : 1;
+    $items_per_page = 20;
+    $offset = ($current_page - 1) * $items_per_page;
+    
+    // Get filter parameters
+    $status_filter = isset($_GET['status']) ? sanitize_text_field($_GET['status']) : '';
+    $search = isset($_GET['s']) ? sanitize_text_field($_GET['s']) : '';
+    
+    // Build WHERE clause
+    $where_conditions = array();
+    $where_values = array();
+    
+    if (!empty($status_filter)) {
+        $where_conditions[] = "status = %s";
+        $where_values[] = $status_filter;
+    }
+    
+    if (!empty($search)) {
+        $where_conditions[] = "(visitor_name LIKE %s OR visitor_email LIKE %s OR subject LIKE %s OR message LIKE %s)";
+        $search_term = '%' . $wpdb->esc_like($search) . '%';
+        $where_values[] = $search_term;
+        $where_values[] = $search_term;
+        $where_values[] = $search_term;
+        $where_values[] = $search_term;
+    }
+    
+    $where_clause = !empty($where_conditions) ? 'WHERE ' . implode(' AND ', $where_conditions) : '';
+    
+    // Get total count
+    $total_query = "SELECT COUNT(*) FROM $table_name $where_clause";
+    if (!empty($where_values)) {
+        $total_items = $wpdb->get_var($wpdb->prepare($total_query, $where_values));
+    } else {
+        $total_items = $wpdb->get_var($total_query);
+    }
+    
+    // Get submissions for current page
+    $submissions_query = "SELECT * FROM $table_name $where_clause ORDER BY submission_date DESC LIMIT %d OFFSET %d";
+    $query_values = array_merge($where_values, array($items_per_page, $offset));
+    $submissions = $wpdb->get_results($wpdb->prepare($submissions_query, $query_values));
+    
+    // Calculate pagination
+    $total_pages = ceil($total_items / $items_per_page);
+    ?>
+    <div class="wrap">
+        <h1>Form Submissions 
+            <?php if (!empty($status_filter)): ?>
+                <span class="subtitle">- <?php echo ucfirst($status_filter); ?></span>
+            <?php endif; ?>
+        </h1>
         
-        // Get submissions for current page
-        $submissions_query = "SELECT * FROM $table_name $where_clause ORDER BY submission_date DESC LIMIT %d OFFSET %d";
-        $query_values = array_merge($where_values, array($items_per_page, $offset));
-        $submissions = $wpdb->get_results($wpdb->prepare($submissions_query, $query_values));
-        
-        // Calculate pagination
-        $total_pages = ceil($total_items / $items_per_page);
-        ?>
-        <div class="wrap">
-            <h1>Form Submissions 
-                <?php if (!empty($status_filter)): ?>
-                    <span class="subtitle">- <?php echo ucfirst($status_filter); ?></span>
-                <?php endif; ?>
-            </h1>
-            
-            <!-- Filters and Search -->
-            <div class="tablenav top">
-                <div class="alignleft actions">
+        <!-- Filters and Search -->
+        <div class="tablenav top">
+            <div class="alignleft actions">
+                <form method="get" action="" id="filter-form">
+                    <input type="hidden" name="page" value="fst-submissions">
                     <select name="status" id="filter-by-status">
                         <option value="">All Statuses</option>
                         <option value="unread" <?php selected($status_filter, 'unread'); ?>>Unread</option>
@@ -478,212 +501,255 @@ class FormSpammerTrapPlugin {
                         <option value="sent" <?php selected($status_filter, 'sent'); ?>>Email Sent</option>
                         <option value="email_failed" <?php selected($status_filter, 'email_failed'); ?>>Email Failed</option>
                     </select>
-                    <input type="submit" class="button" value="Filter" onclick="this.form.submit();">
-                </div>
-                
-                <p class="search-box">
-                    <input type="search" name="s" value="<?php echo esc_attr($search); ?>" placeholder="Search submissions...">
-                    <input type="submit" class="button" value="Search">
-                </p>
+                    <input type="submit" class="button" value="Filter">
+                </form>
             </div>
             
-            <form method="get" action="">
+            <p class="search-box">
+                <form method="get" action="">
+                    <input type="hidden" name="page" value="fst-submissions">
+                    <input type="hidden" name="status" value="<?php echo esc_attr($status_filter); ?>">
+                    <input type="search" name="s" value="<?php echo esc_attr($search); ?>" placeholder="Search submissions...">
+                    <input type="submit" class="button" value="Search">
+                </form>
+            </p>
+        </div>
+        
+        <?php if (empty($submissions)): ?>
+            <div class="notice notice-info">
+                <p><strong>No submissions found.</strong> 
+                <?php if (!empty($status_filter) || !empty($search)): ?>
+                    Try adjusting your filters.
+                <?php else: ?>
+                    Submissions will appear here once visitors start using your contact form.
+                <?php endif; ?>
+                </p>
+            </div>
+        <?php else: ?>
+            
+            <!-- FIXED: Bulk Actions Form -->
+            <form method="post" action="" id="bulk-actions-form">
+                <?php wp_nonce_field('fst_bulk_actions'); ?>
+                <!-- IMPORTANT: Preserve current filters in bulk actions -->
                 <input type="hidden" name="page" value="fst-submissions">
                 <input type="hidden" name="status" value="<?php echo esc_attr($status_filter); ?>">
                 <input type="hidden" name="s" value="<?php echo esc_attr($search); ?>">
+                <input type="hidden" name="paged" value="<?php echo $current_page; ?>">
+                
+                <div class="tablenav top">
+                    <div class="alignleft actions bulkactions">
+                        <select name="bulk_action" id="bulk-action-selector-top">
+                            <option value="-1">Bulk Actions</option>
+                            <option value="mark_read">Mark as Read</option>
+                            <option value="mark_unread">Mark as Unread</option>
+                            <option value="delete">Delete</option>
+                        </select>
+                        <input type="submit" class="button action" value="Apply" id="doaction">
+                    </div>
+                    
+                    <div class="tablenav-pages">
+                        <span class="displaying-num"><?php echo $total_items; ?> items</span>
+                        <?php
+                        if ($total_pages > 1) {
+                            $page_links = paginate_links(array(
+                                'base' => add_query_arg('paged', '%#%'),
+                                'format' => '',
+                                'prev_text' => '&laquo;',
+                                'next_text' => '&raquo;',
+                                'total' => $total_pages,
+                                'current' => $current_page,
+                                'type' => 'list'
+                            ));
+                            echo $page_links;
+                        }
+                        ?>
+                    </div>
+                </div>
+                
+                <table class="wp-list-table widefat fixed striped">
+                    <thead>
+                        <tr>
+                            <td class="manage-column column-cb check-column">
+                                <input type="checkbox" id="cb-select-all-1">
+                            </td>
+                            <th scope="col" class="manage-column">Status</th>
+                            <th scope="col" class="manage-column">Date</th>
+                            <th scope="col" class="manage-column">From</th>
+                            <th scope="col" class="manage-column">Subject</th>
+                            <th scope="col" class="manage-column">Message Preview</th>
+                            <th scope="col" class="manage-column">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php foreach ($submissions as $submission): ?>
+                            <tr class="<?php echo $submission->status === 'unread' ? 'unread' : ''; ?>">
+                                <th scope="row" class="check-column">
+                                    <input type="checkbox" name="submission_ids[]" value="<?php echo $submission->id; ?>">
+                                </th>
+                                <td>
+                                    <?php
+                                    $status_colors = array(
+                                        'unread' => '#d63638',
+                                        'read' => '#00a32a',
+                                        'sent' => '#2271b1',
+                                        'email_failed' => '#d63638'
+                                    );
+                                    $status_color = isset($status_colors[$submission->status]) ? $status_colors[$submission->status] : '#646970';
+                                    ?>
+                                    <span style="color: <?php echo $status_color; ?>; font-weight: bold;">
+                                        <?php echo ucfirst(str_replace('_', ' ', $submission->status)); ?>
+                                    </span>
+                                </td>
+                                <td>
+                                    <strong><?php echo date('M j, Y', strtotime($submission->submission_date)); ?></strong><br>
+                                    <span style="color: #646970;"><?php echo date('g:i a', strtotime($submission->submission_date)); ?></span>
+                                </td>
+                                <td>
+                                    <strong><?php echo esc_html($submission->visitor_name ?? ''); ?></strong><br>
+                                    <a href="mailto:<?php echo esc_attr($submission->visitor_email ?? ''); ?>"><?php echo esc_html($submission->visitor_email ?? ''); ?></a>
+                                </td>
+                                <td>
+                                    <strong><?php echo esc_html($submission->subject ?? ''); ?></strong>
+                                </td>
+                                <td>
+                                    <?php 
+                                    $preview = wp_trim_words(strip_tags($submission->message), 15, '...');
+                                    echo esc_html($preview);
+                                    ?>
+                                </td>
+                                <td>
+                                    <a href="<?php echo add_query_arg(array('view' => $submission->id)); ?>" class="button button-small">View</a>
+                                    
+                                    <?php if ($submission->status === 'unread'): ?>
+                                        <a href="<?php echo wp_nonce_url(add_query_arg(array('action' => 'mark_read', 'submission_id' => $submission->id)), 'fst_submission_action'); ?>" class="button button-small">Mark Read</a>
+                                    <?php else: ?>
+                                        <a href="<?php echo wp_nonce_url(add_query_arg(array('action' => 'mark_unread', 'submission_id' => $submission->id)), 'fst_submission_action'); ?>" class="button button-small">Mark Unread</a>
+                                    <?php endif; ?>
+                                    
+                                    <a href="<?php echo wp_nonce_url(add_query_arg(array('action' => 'delete', 'submission_id' => $submission->id)), 'fst_submission_action'); ?>" class="button button-small" onclick="return confirm('Are you sure you want to delete this submission?');">Delete</a>
+                                </td>
+                            </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
+                
+                <div class="tablenav bottom">
+                    <div class="alignleft actions bulkactions">
+                        <select name="bulk_action" id="bulk-action-selector-bottom">
+                            <option value="-1">Bulk Actions</option>
+                            <option value="mark_read">Mark as Read</option>
+                            <option value="mark_unread">Mark as Unread</option>
+                            <option value="delete">Delete</option>
+                        </select>
+                        <input type="submit" class="button action" value="Apply" id="doaction2">
+                    </div>
+                    
+                    <div class="tablenav-pages">
+                        <?php
+                        if ($total_pages > 1) {
+                            $page_links = paginate_links(array(
+                                'base' => add_query_arg('paged', '%#%'),
+                                'format' => '',
+                                'prev_text' => '&laquo;',
+                                'next_text' => '&raquo;',
+                                'total' => $total_pages,
+                                'current' => $current_page,
+                                'type' => 'list'
+                            ));
+                            echo $page_links;
+                        }
+                        ?>
+                    </div>
+                </div>
             </form>
             
-            <?php if (empty($submissions)): ?>
-                <div class="notice notice-info">
-                    <p><strong>No submissions found.</strong> 
-                    <?php if (!empty($status_filter) || !empty($search)): ?>
-                        Try adjusting your filters.
-                    <?php else: ?>
-                        Submissions will appear here once visitors start using your contact form.
-                    <?php endif; ?>
-                    </p>
-                </div>
-            <?php else: ?>
-                
-                <form method="post" action="">
-                    <?php wp_nonce_field('fst_bulk_actions'); ?>
-                    
-                    <div class="tablenav top">
-                        <div class="alignleft actions bulkactions">
-                            <select name="bulk_action">
-                                <option value="-1">Bulk Actions</option>
-                                <option value="mark_read">Mark as Read</option>
-                                <option value="mark_unread">Mark as Unread</option>
-                                <option value="delete">Delete</option>
-                            </select>
-                            <input type="submit" class="button action" value="Apply">
-                        </div>
-                        
-                        <div class="tablenav-pages">
-                            <span class="displaying-num"><?php echo $total_items; ?> items</span>
-                            <?php
-                            if ($total_pages > 1) {
-                                $page_links = paginate_links(array(
-                                    'base' => add_query_arg('paged', '%#%'),
-                                    'format' => '',
-                                    'prev_text' => '&laquo;',
-                                    'next_text' => '&raquo;',
-                                    'total' => $total_pages,
-                                    'current' => $current_page,
-                                    'type' => 'list'
-                                ));
-                                echo $page_links;
-                            }
-                            ?>
-                        </div>
-                    </div>
-                    
-                    <table class="wp-list-table widefat fixed striped">
-                        <thead>
-                            <tr>
-                                <td class="manage-column column-cb check-column">
-                                    <input type="checkbox" id="cb-select-all-1">
-                                </td>
-                                <th scope="col" class="manage-column">Status</th>
-                                <th scope="col" class="manage-column">Date</th>
-                                <th scope="col" class="manage-column">From</th>
-                                <th scope="col" class="manage-column">Subject</th>
-                                <th scope="col" class="manage-column">Message Preview</th>
-                                <th scope="col" class="manage-column">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <?php foreach ($submissions as $submission): ?>
-                                <tr class="<?php echo $submission->status === 'unread' ? 'unread' : ''; ?>">
-                                    <th scope="row" class="check-column">
-                                        <input type="checkbox" name="submission_ids[]" value="<?php echo $submission->id; ?>">
-                                    </th>
-                                    <td>
-                                        <?php
-                                        $status_colors = array(
-                                            'unread' => '#d63638',
-                                            'read' => '#00a32a',
-                                            'sent' => '#2271b1',
-                                            'email_failed' => '#d63638'
-                                        );
-                                        $status_color = isset($status_colors[$submission->status]) ? $status_colors[$submission->status] : '#646970';
-                                        ?>
-                                        <span style="color: <?php echo $status_color; ?>; font-weight: bold;">
-                                            <?php echo ucfirst(str_replace('_', ' ', $submission->status)); ?>
-                                        </span>
-                                    </td>
-                                    <td>
-                                        <strong><?php echo date('M j, Y', strtotime($submission->submission_date)); ?></strong><br>
-                                        <span style="color: #646970;"><?php echo date('g:i a', strtotime($submission->submission_date)); ?></span>
-                                    </td>
-                                    <td>
-                                        <strong><?php esc_html($submission->visitor_name ?? ''); ?></strong><br>
-                                        <a href="mailto:<?php echo esc_attr($submission->visitor_email ?? ''); ?>"><?php echo esc_html($submission->visitor_email ?? ''); ?></a>
-                                    </td>
-                                    <td>
-                                        <strong><?php esc_html($submission->subject ?? ''); ?></strong>
-                                    </td>
-                                    <td>
-                                        <?php 
-                                        $preview = wp_trim_words(strip_tags($submission->message), 15, '...');
-                                        echo esc_html($preview);
-                                        ?>
-                                    </td>
-                                    <td>
-                                        <a href="<?php echo add_query_arg(array('view' => $submission->id)); ?>" class="button button-small">View</a>
-                                        
-                                        <?php if ($submission->status === 'unread'): ?>
-                                            <a href="<?php echo wp_nonce_url(add_query_arg(array('action' => 'mark_read', 'submission_id' => $submission->id)), 'fst_submission_action'); ?>" class="button button-small">Mark Read</a>
-                                        <?php else: ?>
-                                            <a href="<?php echo wp_nonce_url(add_query_arg(array('action' => 'mark_unread', 'submission_id' => $submission->id)), 'fst_submission_action'); ?>" class="button button-small">Mark Unread</a>
-                                        <?php endif; ?>
-                                        
-                                        <a href="<?php echo wp_nonce_url(add_query_arg(array('action' => 'delete', 'submission_id' => $submission->id)), 'fst_submission_action'); ?>" class="button button-small" onclick="return confirm('Are you sure you want to delete this submission?');">Delete</a>
-                                    </td>
-                                </tr>
-                            <?php endforeach; ?>
-                        </tbody>
-                    </table>
-                    
-                    <div class="tablenav bottom">
-                        <div class="alignleft actions bulkactions">
-                            <select name="bulk_action">
-                                <option value="-1">Bulk Actions</option>
-                                <option value="mark_read">Mark as Read</option>
-                                <option value="mark_unread">Mark as Unread</option>
-                                <option value="delete">Delete</option>
-                            </select>
-                            <input type="submit" class="button action" value="Apply">
-                        </div>
-                        
-                        <div class="tablenav-pages">
-                            <?php
-                            if ($total_pages > 1) {
-                                $page_links = paginate_links(array(
-                                    'base' => add_query_arg('paged', '%#%'),
-                                    'format' => '',
-                                    'prev_text' => '&laquo;',
-                                    'next_text' => '&raquo;',
-                                    'total' => $total_pages,
-                                    'current' => $current_page,
-                                    'type' => 'list'
-                                ));
-                                echo $page_links;
-                            }
-                            ?>
-                        </div>
-                    </div>
-                </form>
-                
-            <?php endif; ?>
-            
-            <?php
-            // Show individual submission view if requested
-            if (isset($_GET['view'])) {
-                $this->show_submission_details(intval($_GET['view']));
-            }
-            ?>
-            
-        </div>
+        <?php endif; ?>
         
-        <style>
-        .wp-list-table tr.unread {
-            background-color: #f0f8ff;
-            font-weight: bold;
-        }
-        .wp-list-table .column-cb {
-            width: 2.2em;
-        }
-        .tablenav .actions {
-            padding: 2px 8px 0 0;
-        }
-        .search-box {
-            float: right;
-            margin: 0;
-        }
-        .search-box input[type="search"] {
-            width: 280px;
-        }
-        </style>
-        
-        <script>
-        jQuery(document).ready(function($) {
-            // Handle select all checkbox
-            $('#cb-select-all-1').on('change', function() {
-                $('input[name="submission_ids[]"]').prop('checked', this.checked);
-            });
-            
-            // Handle filter form submission
-            $('#filter-by-status').on('change', function() {
-                var url = new URL(window.location);
-                url.searchParams.set('status', this.value);
-                url.searchParams.delete('paged'); // Reset to first page
-                window.location = url;
-            });
-        });
-        </script>
         <?php
+        // Show individual submission view if requested
+        if (isset($_GET['view'])) {
+            $this->show_submission_details(intval($_GET['view']));
+        }
+        ?>
+        
+    </div>
+    
+    <style>
+    .wp-list-table tr.unread {
+        background-color: #f0f8ff;
+        font-weight: bold;
     }
+    .wp-list-table .column-cb {
+        width: 2.2em;
+    }
+    .tablenav .actions {
+        padding: 2px 8px 0 0;
+    }
+    .search-box {
+        float: right;
+        margin: 0;
+    }
+    .search-box input[type="search"] {
+        width: 280px;
+    }
+    </style>
+    
+    <script>
+    jQuery(document).ready(function($) {
+        // Handle select all checkbox
+        $('#cb-select-all-1').on('change', function() {
+            $('input[name="submission_ids[]"]').prop('checked', this.checked);
+        });
+        
+        // FIXED: Handle bulk action form submission with better validation
+        $('#bulk-actions-form').on('submit', function(e) {
+            var bulkAction = $('#bulk-action-selector-top').val();
+            if (!bulkAction) {
+                bulkAction = $('#bulk-action-selector-bottom').val();
+            }
+            
+            var selectedItems = $('input[name="submission_ids[]"]:checked').length;
+            
+            if (bulkAction === '-1') {
+                e.preventDefault();
+                alert('Please select a bulk action.');
+                return false;
+            }
+            
+            if (selectedItems === 0) {
+                e.preventDefault();
+                alert('Please select at least one submission.');
+                return false;
+            }
+            
+            // Confirm delete action
+            if (bulkAction === 'delete') {
+                if (!confirm('Are you sure you want to delete ' + selectedItems + ' submission(s)? This action cannot be undone.')) {
+                    e.preventDefault();
+                    return false;
+                }
+            }
+            
+            // Set the bulk action field from whichever dropdown was used
+            $('input[name="bulk_action"]').val(bulkAction);
+            
+            return true;
+        });
+        
+        // Sync bulk action dropdowns
+        $('#bulk-action-selector-top, #bulk-action-selector-bottom').on('change', function() {
+            var value = $(this).val();
+            $('#bulk-action-selector-top, #bulk-action-selector-bottom').val(value);
+        });
+        
+        // Handle filter form submission
+        $('#filter-by-status').on('change', function() {
+            $('#filter-form').submit();
+        });
+    });
+    </script>
+    <?php
+}
 
     /**
      * Show individual submission details
@@ -1290,7 +1356,6 @@ class FormSpammerTrapPlugin {
         );
         
         if ($result === false) {
-            error_log('FormSpammerTrap Plugin: Failed to save submission to database - ' . $wpdb->last_error);
             return false;
         }
         

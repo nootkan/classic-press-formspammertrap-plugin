@@ -1,20 +1,31 @@
 === FormSpammerTrap Contact Form ===
 Contributors: Van Isle Web Solutions
-Tags: contact form, spam protection, anti-spam, form security, email, file uploads, form submissions, dashboard
+Tags: contact form, spam protection, anti-spam, form security, email, file uploads, form submissions, dashboard, import, export
 Requires at least: 4.9
 Tested up to: 6.8.2
-Stable tag: 1.5.0
+Stable tag: 1.5.1
 Requires PHP: => 7.2
 License: GPL2
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
-Professional anti-spam contact form with submission management, file uploads, and enterprise-level security features powered by FormSpammerTrap.
+Professional anti-spam contact form with submission management, file uploads, import/export functionality, and enterprise-level security features powered by FormSpammerTrap.
 
 == Description ==
 
 FormSpammerTrap Contact Form provides a secure, spam-resistant contact form for your ClassicPress/Wordpress website. Built on the proven FormSpammerTrap anti-spam system, this plugin offers advanced protection against bots, spammers, and automated attacks while maintaining excellent usability for legitimate visitors.
 
-**🆕 NEW in v1.5.0: Complete Form Submissions Management System**
+**🆕 NEW in v1.5.1: Complete Import/Export System**
+
+* **📥 CSV Import Functionality** - Import form submissions from other contact form plugins
+* **🔄 Intelligent Field Mapping** - Automatic detection and manual mapping of CSV fields to database fields
+* **👀 Import Preview** - See exactly what will be imported before processing
+* **🧪 Test Mode** - Safe preview mode to verify imports without affecting your database
+* **📤 Multi-Format Export** - Export submissions in CSV, JSON, XML, TXT, and HTML formats
+* **🎯 Advanced Export Filtering** - Export by status, date range, or specific fields
+* **📊 Export Preview** - Preview your export before downloading
+* **🔧 Flexible Configuration** - Support for various CSV formats from different form plugins
+
+**🔥 FEATURED in v1.5.0: Complete Form Submissions Management System**
 
 * **📊 Submissions Dashboard** - View, search, and manage all form submissions in one place
 * **🔍 Advanced Search & Filtering** - Find submissions by status, date, name, email, or message content
@@ -24,7 +35,7 @@ FormSpammerTrap Contact Form provides a secure, spam-resistant contact form for 
 * **🔔 Admin Notifications** - Get notified about unread submissions throughout your admin area
 * **📊 Submission Status Tracking** - Monitor email delivery success/failure for each submission
 * **🗂️ Bulk Actions** - Mark multiple submissions as read/unread or delete them efficiently
-* **📎 File Attachment Tracking** - See what files were uploaded with each submission
+* **🔎 File Attachment Tracking** - See what files were uploaded with each submission
 * **🏷️ Status Management** - Automatic status tracking (unread, read, sent, email failed)
 
 **Key Features:**
@@ -32,6 +43,7 @@ FormSpammerTrap Contact Form provides a secure, spam-resistant contact form for 
 * **Advanced Spam Protection** - Multiple layers of bot detection and spam prevention
 * **No CAPTCHA Required** - Uses invisible protection methods that don't burden users
 * **Secure File Uploads** - Allow visitors to attach files with enterprise-level security
+* **Complete Import/Export System** - Full data migration capabilities with multiple format support
 * **Form Submissions Management** - Complete dashboard to view and manage all form submissions
 * **Complete Clean Uninstall** - Removes ALL plugin data, files, and database entries when deleted
 * **Automatic File Cleanup** - GDPR-compliant automatic deletion of uploaded files
@@ -48,6 +60,43 @@ FormSpammerTrap Contact Form provides a secure, spam-resistant contact form for 
 * **PHPMailer Integration** - Reliable email delivery system
 * **Multiple Recipients** - Support for CC and BCC email addresses
 
+**📥📤 Import/Export System Features:**
+
+* **📥 CSV Import Capabilities:**
+  - Import from Contact Form 7/Flamingo exports
+  - Import from Formidable Forms exports
+  - Import from any CSV file with proper headers
+  - Support for up to 1,000 records per import
+  - Maximum file size: 5MB
+  - Intelligent auto-detection of field mappings
+  - Manual field mapping override capabilities
+  - Test mode for safe preview before importing
+  - Real-time import preview with data validation
+
+* **📤 Multi-Format Export Options:**
+  - **CSV Export** - Excel-compatible spreadsheet format
+  - **JSON Export** - Structured data format for developers
+  - **XML Export** - Structured markup format for data exchange
+  - **TXT Export** - Simple text format for basic viewing
+  - **HTML Export** - Web page format for viewing and printing
+
+* **🎯 Advanced Export Filtering:**
+  - Filter by submission status (unread, read, sent, failed)
+  - Filter by date range (from/to dates)
+  - Select specific fields to include or exclude
+  - Choose between all submissions or filtered subsets
+  - Include/exclude column headers
+  - Format dates for readability
+  - Clean HTML tags from messages
+
+* **🔧 Import Configuration:**
+  - Auto-detect common field mappings (Name → Visitor Name, etc.)
+  - Manual dropdown selection for custom field mapping
+  - Support for various date formats and structures
+  - Email validation during import process
+  - Skip fields not needed in your database
+  - Comprehensive error handling and validation
+
 **📊 Form Submissions Management Features:**
 
 * **Comprehensive Submission Storage** - All form data automatically saved to secure database
@@ -61,7 +110,7 @@ FormSpammerTrap Contact Form provides a secure, spam-resistant contact form for 
 * **Dashboard Integration** - Quick access widget shows recent submissions on main dashboard
 * **Smart Notifications** - Admin notices alert you to unread submissions throughout the admin area
 
-**🧹 Complete Cleanup Features (Enhanced in v1.5.0):**
+**🧹 Complete Cleanup Features (Enhanced in v1.5.1):**
 
 * **Submission Data Cleanup** - Removes all stored form submissions and related data
 * **Database Options Cleanup** - Removes all plugin-specific options (fst_default_email, fst_enable_uploads, etc.)
@@ -83,6 +132,8 @@ FormSpammerTrap Contact Form provides a secure, spam-resistant contact form for 
 * **Security Monitoring** - Real-time dashboard shows protection status and storage usage of uploads directory
 * **Safe Table Cleanup** - Intelligent database cleanup that only targets FormSpammerTrap-specific tables
 * **Secure Submission Storage** - All form data stored with proper sanitization and validation
+* **Import Security** - CSV files validated and sanitized during import process
+* **Export Security** - Admin-only access to export functionality with nonce verification
 
 **File Upload Features:**
 
@@ -97,7 +148,7 @@ FormSpammerTrap Contact Form provides a secure, spam-resistant contact form for 
 
 **Easy to Use:**
 
-Simply add the `[formspammertrap]` shortcode to any page or post to display the contact form. The plugin includes a comprehensive admin interface for configuration, security monitoring, and submission management.
+Simply add the `[formspammertrap]` shortcode to any page or post to display the contact form. The plugin includes a comprehensive admin interface for configuration, security monitoring, submission management, and data import/export.
 
 == Installation ==
 
@@ -122,6 +173,8 @@ Simply add the `[formspammertrap]` shortcode to any page or post to display the 
 9. Configure file upload options if desired
 10. Review security status and configure retention settings
 11. **NEW:** Access Settings > Form Submissions to view and manage all form submissions
+12. **NEW:** Use Settings > Import Submissions to import data from other contact form plugins
+13. **NEW:** Use Settings > Export Submissions to export your form data in multiple formats
 
 **🗑️ Clean Removal:**
 When you no longer want the plugin, simply delete it from the Plugins page. The enhanced cleanup system will automatically remove all plugin data, uploaded files, form submissions, database entries, and configuration - leaving your site completely clean!
@@ -145,6 +198,15 @@ When you no longer want the plugin, simply delete it from the Plugins page. The 
 4. **Email Delivery Tracking** - Monitor whether emails were sent successfully
 5. **Admin Notes** - Add internal comments to any submission
 6. **Search & Filter** - Find specific submissions quickly
+
+**📥📤 Import/Export Settings:**
+
+1. **Import Access** - Available via Settings > Import Submissions
+2. **Export Access** - Available via Settings > Export Submissions
+3. **Supported Import Format** - CSV files only (up to 5MB, 1,000 records)
+4. **Export Formats** - CSV, JSON, XML, TXT, HTML
+5. **Field Mapping** - Automatic detection with manual override options
+6. **Data Validation** - Email validation and field sanitization during import
 
 **File Upload Settings:**
 
@@ -193,6 +255,27 @@ Add this shortcode to any page or post:
 6. **Bulk Actions** - Select multiple submissions and mark as read/unread or delete
 7. **Email Integration** - Click "Reply via Email" to respond directly to submitters
 
+**📥 Importing Form Submissions:**
+
+1. **Access Import** - Go to Settings > Import Submissions
+2. **Upload CSV File** - Select your CSV file (max 5MB, 1,000 records)
+3. **Preview Data** - Click "Upload & Preview File" to see your data
+4. **Map Fields** - Review auto-detected field mapping or adjust manually:
+   - **Green "(Auto-detected)"** - System found a good match
+   - **Dropdown menus** - Choose which CSV column maps to which database field
+   - **"-- Skip this field --"** - Don't import that type of data
+5. **Test Import** - Keep "Test mode" checked for safe preview
+6. **Process Import** - Uncheck "Test mode" and click "Process Import" to import data
+
+**📤 Exporting Form Submissions:**
+
+1. **Access Export** - Go to Settings > Export Submissions
+2. **Choose Format** - Select CSV, JSON, XML, TXT, or HTML
+3. **Set Filters** - Filter by status, date range, or specific fields
+4. **Configure Options** - Include headers, format dates, clean HTML
+5. **Preview Export** - Click "Preview Export" to see sample output
+6. **Download** - Click "Download Export" to get your file
+
 **Shortcode Attributes:**
 * `email` - Override default recipient email
 * `cc` - Add CC recipients (comma-separated for multiple)
@@ -207,7 +290,7 @@ The contact form includes these standard fields:
 * **Message** (Required) - Main message content
 * **Attach File** (Optional) - Multiple file uploads with preview
 
-All fields include validation and spam protection features. File uploads include extension validation and security scanning. **All form data is automatically saved to the submissions dashboard for easy management.**
+All fields include validation and spam protection features. File uploads include extension validation and security scanning. **All form data is automatically saved to the submissions dashboard for easy management and can be exported in multiple formats.**
 
 == 📊 Form Submissions Dashboard ==
 
@@ -223,16 +306,16 @@ All fields include validation and spam protection features. File uploads include
 
 * **👤 Visitor Information** - Name, email, subject, submission date, and status
 * **🔧 Technical Details** - IP address, user agent, and timestamp for security analysis
-* **📎 File Attachments** - List of uploaded files with sizes and types
+* **🔎 File Attachments** - List of uploaded files with sizes and types
 * **📝 Complete Message** - Full message content in easy-to-read format
-* **🗒️ Admin Notes** - Add and edit internal notes for team collaboration
+* **🗑️ Admin Notes** - Add and edit internal notes for team collaboration
 * **📧 Email Integration** - Direct "Reply via Email" links to your email client
 
 **Bulk Management:**
 
 * **✅ Bulk Actions** - Mark multiple submissions as read/unread
 * **🗑️ Bulk Delete** - Remove multiple submissions efficiently
-* **🔲 Select All** - Checkbox to select all visible submissions
+* **📱 Select All** - Checkbox to select all visible submissions
 * **📊 Status Management** - Change status for multiple submissions simultaneously
 
 **Dashboard Widget:**
@@ -246,6 +329,56 @@ All fields include validation and spam protection features. File uploads include
 * **🔔 Unread Alerts** - Admin notices show when you have unread submissions
 * **📍 Smart Placement** - Notifications appear throughout admin area (except on submissions page)
 * **🔗 Direct Links** - Click notification to go directly to unread submissions
+
+== 📥📤 Import/Export System ==
+
+**📥 Import Functionality:**
+
+* **📁 CSV File Support** - Import data from any properly formatted CSV file
+* **🔄 Automatic Field Detection** - Smart mapping of common field names:
+  - Name/Full Name → Visitor Name
+  - Email → Visitor Email  
+  - Subject/Title → Subject
+  - Message/Content → Message
+  - Timestamp/Date → Submission Date
+  - IP → IP Address
+
+* **🎯 Manual Field Mapping** - Override automatic detection with dropdown selections
+* **👀 Import Preview** - See exactly what will be imported before processing
+* **🧪 Test Mode** - Safe preview without affecting your database
+* **📊 Import Statistics** - See how many records will be processed
+* **🔒 Data Validation** - Email validation and field sanitization
+* **📋 Import History** - Track successful imports and any issues
+
+**📤 Export Functionality:**
+
+* **📊 Multiple Export Formats:**
+  - **CSV** - Perfect for Excel, Google Sheets, and database imports
+  - **JSON** - Ideal for developers and API integrations  
+  - **XML** - Great for structured data exchange and archival
+  - **TXT** - Simple text format for basic viewing
+  - **HTML** - Professional format for printing and presentations
+
+* **🎯 Advanced Filtering Options:**
+  - Filter by submission status (all, unread, read, sent, failed)
+  - Filter by date range (from/to dates)
+  - Select specific fields to include or exclude
+  - Include/exclude column headers
+  - Format dates for better readability
+  - Remove HTML tags from message content
+
+* **👀 Export Preview** - See sample output before downloading
+* **📊 Export Statistics** - Know exactly how many records will be exported
+* **🔄 Flexible Configuration** - Choose exactly what data to export
+
+**🔧 Import/Export Security:**
+
+* **Admin-Only Access** - Only administrators can import/export data
+* **Nonce Verification** - CSRF protection for all import/export operations
+* **File Validation** - Strict validation of uploaded CSV files
+* **Data Sanitization** - All imported data is properly cleaned and validated
+* **Size Limits** - Maximum file size (5MB) and record limits (1,000) for safety
+* **Error Handling** - Comprehensive error reporting and validation
 
 == Plugin Security Features ==
 
@@ -264,6 +397,14 @@ All fields include validation and spam protection features. File uploads include
 * Nonce verification for all admin actions
 * XSS protection on all output
 * CSRF protection for form actions
+
+**📥📤 Import/Export Security:**
+* Admin-only access to import/export functions
+* File type validation (CSV only for imports)
+* File size limits prevent abuse
+* Data sanitization during import process
+* Nonce verification for all operations
+* Comprehensive error handling and logging
 
 **File Upload Security:**
 * Extension whitelist prevents dangerous files
@@ -296,8 +437,24 @@ All fields include validation and spam protection features. File uploads include
 
 == Frequently Asked Questions ==
 
-= 🆕 What happens to my form submissions when I delete the plugin? =
-**All form submissions are permanently deleted!** Version 1.5.0 features comprehensive cleanup that removes all stored submissions along with files, configuration, and database entries. If you need to keep submission data, export or backup the information before deleting the plugin.
+= 🆕 Can I import submissions from other contact form plugins? =
+Yes! The import system supports CSV files from Contact Form 7/Flamingo, Formidable Forms, and any other contact form plugin that can export to CSV format. The system automatically detects common field mappings and allows manual adjustment as needed.
+
+= How do I import data from Contact Form 7? =
+1. Export your Contact Form 7 data using the Flamingo plugin's export feature
+2. Go to Settings > Import Submissions in your WordPress admin
+3. Upload the CSV file and use the preview feature
+4. Review the automatic field mapping (or adjust manually)
+5. Run in test mode first, then uncheck test mode to import
+
+= What export formats are available? =
+You can export in five formats: CSV (Excel-compatible), JSON (for developers), XML (structured data), TXT (simple text), and HTML (for printing/viewing). Each format is optimized for different use cases.
+
+= Can I export only certain submissions? =
+Absolutely! You can filter exports by status (unread, read, sent, failed), date range, and choose specific fields to include. The export system is very flexible.
+
+= What happens to my form submissions when I delete the plugin? =
+**All form submissions are permanently deleted!** Version 1.5.1 features comprehensive cleanup that removes all stored submissions along with files, configuration, and database entries. If you need to keep submission data, export or backup the information before deleting the plugin.
 
 = How do I access my form submissions? =
 Go to Settings > Form Submissions in your WordPress admin. You'll see a complete dashboard with all submissions, search functionality, and filtering options.
@@ -315,7 +472,7 @@ Absolutely! Click "View" on any submission and you'll find an admin notes sectio
 Click "View" on any submission, then click the "Reply via Email" button. This will open your default email client with the person's email address pre-filled.
 
 = What gets removed when I delete the plugin? =
-**Everything!** Version 1.5.0 features comprehensive cleanup that removes:
+**Everything!** Version 1.5.1 features comprehensive cleanup that removes:
 - All form submissions and related data
 - All plugin configuration options  
 - All FormSpammerTrap core options (fst_* database entries)
@@ -367,8 +524,8 @@ Spam submissions are automatically blocked and redirected. No spam emails reach 
 = How do I know the cleanup worked? =
 Check your error logs for detailed cleanup reports. You'll see exactly what was removed: options, files, folders, database entries, and form submissions.
 
-= Can I export my form submissions? =
-The current version displays submissions in the admin dashboard. For export functionality, you can copy the data from individual submission views or contact support for bulk export options.
+= Can I backup my form submissions before switching plugins? =
+Yes! Use the export functionality to download all your submissions in CSV, JSON, or XML format before making any changes.
 
 == Requirements ==
 
@@ -404,6 +561,7 @@ The plugin includes a comprehensive installation status checker that verifies:
 * Cleanup schedule status
 * Core requirements
 * **NEW:** Submissions database table status
+* **NEW:** Import/Export functionality status
 
 Check Settings > FormSpammerTrap > Installation Status for detailed status information.
 
@@ -415,10 +573,19 @@ The Security Status dashboard provides real-time monitoring of:
 * **Cleanup Schedule** - Cron job status and next run time
 * **Current Storage** - File count and disk usage statistics
 * **🆕 Submissions Database** - Table status and entry counts
+* **🆕 Import/Export Security** - Admin access and file validation status
 
 == Data Management ==
 
-**🆕 Enhanced in v1.5.0:**
+**🆕 Enhanced in v1.5.1:**
+
+**Import/Export Capabilities:**
+- ✅ **Import from any CSV source** - Contact Form 7, Formidable Forms, custom exports
+- ✅ **Export to multiple formats** - CSV, JSON, XML, TXT, HTML
+- ✅ **Advanced filtering and field selection** for exports
+- ✅ **Safe preview mode** for testing imports
+- ✅ **Intelligent field mapping** with manual override options
+- ✅ **Data validation and sanitization** for all imports
 
 **What Gets Cleaned Up on Plugin Deletion:**
 - ✅ **All form submissions and related data**
@@ -436,7 +603,7 @@ The Security Status dashboard provides real-time monitoring of:
 - ❌ Other plugin upload folders
 
 **Backup Recommendation:**
-If you have important uploaded files or want to keep form submission data, create a backup before deleting the plugin. The cleanup is thorough and permanent!
+If you have important uploaded files or want to keep form submission data, use the export functionality to create backups before deleting the plugin. The cleanup is thorough and permanent!
 
 == Support ==
 
@@ -446,6 +613,7 @@ If you have important uploaded files or want to keep form submission data, creat
 3. Verify all required files are properly installed
 4. Check the Installation Status and Security Status in the plugin settings
 5. **NEW:** Check the Form Submissions dashboard for submission-related issues
+6. **NEW:** Use the import/export functionality to migrate data between systems
 
 **Common Issues:**
 * **Blank page after submission** - Usually indicates a PHP error or missing files
@@ -456,11 +624,28 @@ If you have important uploaded files or want to keep form submission data, creat
 * **Security warnings** - Review Security Status dashboard for specific issues
 * **🆕 Submissions not saving** - Verify database permissions and check Installation Status
 * **🆕 Can't access submissions dashboard** - Ensure you have admin privileges and the database table was created
+* **🆕 Import not working** - Check CSV format, file size (max 5MB), and field mappings
+* **🆕 Export files empty** - Verify you have submissions and check filter settings
 
 **For FormSpammerTrap Core Issues Only:**
 Visit FormSpammerTrap.com for support with the core FormSpammerTrap system.
 
 == Changelog ==
+
+= 1.5.1 =
+* **🆕 COMPLETE IMPORT/EXPORT SYSTEM**
+* CSV import functionality with intelligent field mapping and preview
+* Multi-format export system (CSV, JSON, XML, TXT, HTML)
+* Advanced export filtering by status, date range, and field selection
+* Safe test mode for import preview without affecting database
+* Support for importing from Contact Form 7/Flamingo and Formidable Forms
+* Automatic field detection with manual mapping override capabilities
+* Import validation and sanitization for data security
+* Export preview functionality to verify output before download
+* Comprehensive error handling and user guidance for import process
+* Enhanced admin interface for data management and migration
+* Support for various CSV formats and date structures
+* Complete documentation and user-friendly field mapping interface
 
 = 1.5.0 =
 * **🆕 FORM SUBMISSIONS MANAGEMENT SYSTEM**
@@ -547,6 +732,9 @@ Visit FormSpammerTrap.com for support with the core FormSpammerTrap system.
 
 == Upgrade Notice ==
 
+= 1.5.1 =
+🆕 Major Feature Update! Adds complete Import/Export System with CSV import capabilities, multi-format exports, intelligent field mapping, and data migration tools. Perfect for switching from other contact form plugins or creating backups. Import from Contact Form 7, Formidable Forms, and more!
+
 = 1.5.0 =
 🆕 Major Feature Update! Adds complete Form Submissions Management System with dashboard, search, filtering, admin notes, status tracking, and email integration. All form submissions are now automatically saved and manageable through a professional admin interface. Highly recommended update for enhanced form management capabilities.
 
@@ -570,6 +758,7 @@ Initial release of FormSpammerTrap Contact Form plugin.
 This plugin:
 * Processes form submissions and sends them via email
 * **🆕 Stores all form submissions in the database for admin management**
+* **🆕 Provides import/export capabilities for data management and migration**
 * May temporarily store uploaded files based on retention settings
 * Uses session data temporarily for spam protection
 * May log basic form submission data if logging is enabled
@@ -585,6 +774,13 @@ This plugin:
 * Admin notes are private and not visible to form submitters
 * **Complete removal of all submission data when plugin is uninstalled**
 
+**🆕 Import/Export Privacy:**
+* Import/export functions are admin-only capabilities
+* All imported data is validated and sanitized before database storage
+* Export files contain only the data you select and filter
+* No automatic sharing or transmission of exported data
+* All import/export operations are logged for security
+
 **File Upload Privacy:**
 * Uploaded files are automatically protected from direct URL access
 * Files are automatically deleted based on your retention settings
@@ -592,7 +788,7 @@ This plugin:
 * All file handling complies with GDPR requirements when using recommended settings
 * **Complete removal of all files and data when plugin is uninstalled**
 
-Form submissions are processed according to your site's privacy policy. Consider adding appropriate privacy notices for form users, especially regarding data storage, file uploads, and retention periods.
+Form submissions are processed according to your site's privacy policy. Consider adding appropriate privacy notices for form users, especially regarding data storage, import/export capabilities, file uploads, and retention periods.
 
 == Credits ==
 
@@ -603,6 +799,7 @@ Form submissions are processed according to your site's privacy policy. Consider
 * Security features designed with GDPR compliance in mind
 * Enhanced cleanup system ensures responsible data management
 * **🆕 Form submissions system designed with security and privacy in mind**
+* **🆕 Import/export system designed for data portability and migration**
 
 == License ==
 
@@ -617,6 +814,8 @@ fst-uploads/ (created automatically when file uploads enabled)
     └── index.php (directory protection)
 wp-content/plugins/formspammertrap-plugin/
 ├── formspammertrap-plugin.php (main plugin file)
+├── formspammertrap-import.php (import functionality)
+├── formspammertrap-export.php (export functionality)
 ├── includes/
 │   ├── formspammertrap-contact-functions.php (required)
 │   └── phpmailer/
@@ -633,11 +832,19 @@ wp-content/plugins/formspammertrap-plugin/
 * **Performance:** Indexed fields for efficient searching and filtering
 * **Privacy:** Complete table removal during plugin uninstall
 
+**🆕 Import/Export Implementation:**
+* **Import Support:** CSV files up to 5MB with up to 1,000 records
+* **Export Formats:** CSV, JSON, XML, TXT, HTML with advanced filtering
+* **Field Mapping:** Intelligent auto-detection with manual override capabilities
+* **Data Validation:** Comprehensive sanitization and validation for all imports
+* **Security:** Admin-only access with nonce verification and file validation
+
 **🆕 Cleanup Implementation:**
 * Enhanced recursive folder removal with subdirectory support
 * Safe database table cleanup using pattern matching
 * Complete options cleanup (plugin + FormSpammerTrap core)
 * **Form submissions table and data removal**
+* **Import/export configuration cleanup**
 * Automatic transients and cached data removal
 * Cron job cleanup and scheduled task removal
 * Comprehensive logging of all cleanup operations
@@ -650,6 +857,7 @@ wp-content/plugins/formspammertrap-plugin/
 * Automatic directory protection creation
 * **Secure form submission storage with validation**
 * **Admin-only access to submissions dashboard**
+* **Import/export security with file validation**
 * **XSS and CSRF protection for all admin functions**
 * **Complete security cleanup on plugin removal**
 
@@ -662,6 +870,14 @@ wp-content/plugins/formspammertrap-plugin/
 * Admin notes system with update functionality
 * Email integration for direct communication
 * Dashboard widget with recent submissions and statistics
+
+**🆕 Import/Export System:**
+* Secure file upload handling with validation
+* Multiple export format generation
+* Advanced filtering and field selection
+* Preview functionality for both import and export
+* Comprehensive error handling and user feedback
+* Data migration capabilities between different form systems
 
 **Cron Jobs:**
 * Daily cleanup job: `fst_cleanup_uploads`
@@ -684,6 +900,14 @@ FormSpammerTrap Plugin: Comprehensive uninstall cleanup completed
 == Advanced Configuration ==
 
 **For Advanced Users:**
+
+**🆕 Import/Export Configuration:**
+The import/export system supports advanced customization:
+* Custom field mapping for non-standard CSV formats
+* Batch processing for large datasets
+* Advanced filtering options for targeted exports
+* Multiple date format support for imports
+* Case-insensitive field matching for better compatibility
 
 **🆕 Submissions Management:**
 The submissions system is designed for security and performance:
@@ -708,6 +932,14 @@ The retention system can be customized for specific compliance requirements. Con
 * Monitor disk usage if allowing large file uploads
 * Implement backup procedures for important uploaded files before plugin deletion
 * **🆕 Consider database backup procedures for form submissions before plugin deletion**
+* **🆕 Use export functionality to create regular backups of form submissions**
+
+**🆕 Data Migration:**
+For users migrating between form systems:
+* Export all data before switching plugins
+* Test imports in a staging environment first
+* Verify field mapping accuracy before final import
+* Consider data transformation needs for different systems
 
 **🆕 Cleanup Customization:**
 The cleanup system is designed to be safe and comprehensive. Advanced users can modify cleanup patterns in the plugin source code, but this is not recommended as it may affect the safety of the cleanup process.
@@ -717,6 +949,7 @@ For sites expecting high submission volumes:
 * Monitor database size and performance
 * Consider implementing custom archiving procedures for old submissions
 * Review server resources if storing submissions long-term
+* Use export functionality to create periodic backups
 * Database table is optimized with indexes for efficient searching
 
 == Donations ==
@@ -729,6 +962,6 @@ If you find this plugin useful, consider supporting:
 ---
 
 **🆕 A Special Thank You:**
-The Form Submissions Management System was developed through collaborative effort and community feedback. We appreciate all users who contribute to making this plugin better!
+The Form Submissions Management System and Import/Export functionality were developed through collaborative effort and community feedback. We appreciate all users who contribute to making this plugin better!
 
 Thank you for using FormSpammerTrap Contact Form!
