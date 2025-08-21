@@ -3,7 +3,7 @@
  * Plugin Name: FormSpammerTrap Contact Form
  * Plugin URI: https://your-website.com
  * Description: Integrates FormSpammerTrap anti-spam contact form into ClassicPress with Fixed PHPMailer
- * Version: 1.5.0
+ * Version: 1.5.1
  * Author: Van Isle Web Solutions
  * License: GPL2
  * Requires at least: 4.9
@@ -692,6 +692,60 @@ public function submissions_page() {
     .search-box input[type="search"] {
         width: 280px;
     }
+    
+    /* Fix pagination display */
+    .tablenav-pages {
+        float: right;
+        margin: 0;
+    }
+    .tablenav-pages .page-numbers {
+        display: inline-block;
+        padding: 3px 5px;
+        margin: 0 2px;
+        text-decoration: none;
+        border: 1px solid #ddd;
+        background: #f7f7f7;
+    }
+    .tablenav-pages .page-numbers.current {
+        background: #2271b1;
+        color: white;
+        border-color: #2271b1;
+    }
+    .tablenav-pages .page-numbers:hover {
+        background: #f3e0e7;
+        color: white;
+        border-color: #c01d2e;
+    }
+    .tablenav-pages ul {
+        display: inline-block;
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+    .tablenav-pages ul li {
+        display: inline-block;
+        margin: 0;
+    }
+    .tablenav-pages ul li a,
+    .tablenav-pages ul li span {
+        display: inline-block;
+        padding: 3px 5px;
+        margin: 0 2px;
+        text-decoration: none;
+        border: 1px solid #ddd;
+        background: #f7f7f7;
+        color: #2271b1;
+    }
+    .tablenav-pages ul li span.current {
+        background: #2271b1;
+        color: white;
+        border-color: #2271b1;
+    }
+    .tablenav-pages ul li a:hover {
+        background: #f3e0e7;
+        color: white;
+        border-color: #c01d2e;
+    }
     </style>
     
     <script>
@@ -1358,8 +1412,6 @@ public function submissions_page() {
         if ($result === false) {
             return false;
         }
-        
-        error_log('FormSpammerTrap Plugin: Successfully saved submission ID ' . $wpdb->insert_id . ' from ' . $visitor_email);
         return $wpdb->insert_id;
     }
     
@@ -1966,19 +2018,20 @@ function FST_MAIL_ALT($data = array()) {
     
     // If FormSpammerTrap passed us message elements, use them
     // Otherwise, build from $_POST data
+    // FORCE use of plugin's email setting
+$plugin_email = get_option('fst_default_email');
+if (!empty($plugin_email)) {
+    $recipient = $plugin_email;
+} else {
     $recipient = !empty($message_elements['recipient']) ? $message_elements['recipient'] : 
-                 (defined('FST_XEMAIL_ON_DOMAIN') ? FST_XEMAIL_ON_DOMAIN : get_option('fst_default_email'));
+                 (defined('FST_XEMAIL_ON_DOMAIN') ? FST_XEMAIL_ON_DOMAIN : get_option('admin_email'));
+}
     $subject = !empty($message_elements['subject']) ? $message_elements['subject'] : 
                (isset($_POST['your_subject']) ? 'Contact Form Message: ' . $_POST['your_subject'] : 'Contact Form Message');
     $from_email = !empty($message_elements['from_email']) ? $message_elements['from_email'] :
                   (defined('FST_FROM_EMAIL') ? FST_FROM_EMAIL : get_option('fst_default_email'));
     $from_name = !empty($message_elements['from_name']) ? $message_elements['from_name'] :
                  (defined('FST_FROM_NAME') ? FST_FROM_NAME : $_SERVER['HTTP_HOST']);
-    
-    // Add submission ID to subject line for reference
-    if ($submission_id) {
-        $subject .= ' [Submission #' . $submission_id . ']';
-    }
     
     // Load PHPMailer if not already loaded
     if (!class_exists('PHPMailer\PHPMailer\PHPMailer')) {
@@ -2059,13 +2112,6 @@ function FST_MAIL_ALT($data = array()) {
             $message .= "<p><strong>Subject:</strong> " . (isset($_POST['your_subject']) ? $_POST['your_subject'] : 'No subject') . "</p>";
             $message .= "<p><strong>Message:</strong></p>";
             $message .= "<p>" . (isset($_POST['message']) ? nl2br(htmlspecialchars($_POST['message'])) : 'No message') . "</p>";
-        }
-        
-        // Add submission reference to email
-        if ($submission_id) {
-            $admin_url = admin_url('admin.php?page=fst-submissions&view=' . $submission_id);
-            $message .= "<hr><p><strong>Submission Reference:</strong> #" . $submission_id . "</p>";
-            $message .= "<p><a href='" . $admin_url . "'>View in Dashboard</a></p>";
         }
         
         // Handle file attachments
@@ -2225,9 +2271,9 @@ function FST_MORE_FIELDS() {
     $required_colors_option = get_option('fst_required_field_colors', 0);
     $FST_REQUIRED_FIELD_COLORS = ($required_colors_option == '1' || $required_colors_option === 1);
     
-    // Handle max URLs allowed
+    // Handle max URLs allowed - ensure it's an integer
     $max_urls_option = get_option('fst_max_urls_allowed', 1);
-    $FST_XURLS_ALLOWED = intval($max_urls_option);
+    $FST_XURLS_ALLOWED = (int) $max_urls_option; // Force to integer
     
     // IMPORTANT: Control how FormSpammerTrap handles email
     if (get_option('fst_enable_uploads', 0)) {
