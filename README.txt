@@ -1,20 +1,30 @@
 === FormSpammerTrap Contact Form ===
 Contributors: Van Isle Web Solutions
-Tags: contact form, spam protection, anti-spam, form security, email, file uploads, form submissions, dashboard, import, export
+Tags: contact form, spam protection, anti-spam, form security, email, file uploads, form submissions, dashboard, import, export, color customization
 Requires at least: 4.9
 Tested up to: 6.8.2
-Stable tag: 1.5.1
+Stable tag: 1.5.2
 Requires PHP: => 7.2
 License: GPL2
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
-Professional anti-spam contact form with submission management, file uploads, import/export functionality, and enterprise-level security features powered by FormSpammerTrap.
+Professional anti-spam contact form with submission management, file uploads, import/export functionality, complete color customization, and enterprise-level security features powered by FormSpammerTrap.
 
 == Description ==
 
 FormSpammerTrap Contact Form provides a secure, spam-resistant contact form for your ClassicPress/Wordpress website. Built on the proven FormSpammerTrap anti-spam system, this plugin offers advanced protection against bots, spammers, and automated attacks while maintaining excellent usability for legitimate visitors.
 
-**🆕 NEW in v1.5.1: Complete Import/Export System**
+**🆕 NEW in v1.5.2: Complete Form Color Customization System**
+
+* **🎨 Visual Form Designer** - Complete control over all form colors and appearance
+* **🎯 Brand Integration** - Match your website's design perfectly with custom color schemes
+* **⚡ Live Preview** - Real-time color updates with instant visual feedback
+* **🔧 Professional Controls** - Color pickers with hex code input for precise color matching
+* **📱 Responsive Design** - Custom colors work perfectly on all devices and screen sizes
+* **🎮 Easy Management** - Simple enable/disable toggle with automatic default restoration
+* **🖌️ Complete Coverage** - Customize every visual element including submit and reset buttons
+
+**🔥 FEATURED in v1.5.1: Complete Import/Export System**
 
 * **📥 CSV Import Functionality** - Import form submissions from other contact form plugins
 * **🔄 Intelligent Field Mapping** - Automatic detection and manual mapping of CSV fields to database fields
@@ -40,6 +50,7 @@ FormSpammerTrap Contact Form provides a secure, spam-resistant contact form for 
 
 **Key Features:**
 
+* **🎨 Complete Color Customization** - Match your brand with custom form colors and themes
 * **Advanced Spam Protection** - Multiple layers of bot detection and spam prevention
 * **No CAPTCHA Required** - Uses invisible protection methods that don't burden users
 * **Secure File Uploads** - Allow visitors to attach files with enterprise-level security
@@ -52,13 +63,36 @@ FormSpammerTrap Contact Form provides a secure, spam-resistant contact form for 
 * **Database Cleanup** - Comprehensive removal of all FormSpammerTrap configuration on uninstall
 * **Customizable Thank You Messages** - Create personalized success messages
 * **URL Spam Control** - Configurable limits on URLs in messages to prevent link spam
-* **Form Reset Button** - Optional reset functionality for better user experience
+* **Form Reset Button** - Optional reset functionality with customizable colors
 * **Field Color Coding** - Visual feedback for required field validation
 * **Version Display** - Optional FormSpammerTrap version information display to help promote FormSpammerTrap developer
 * **Email Validation** - Built-in email address verification
-* **Responsive Design** - Mobile-friendly form layout
+* **Responsive Design** - Mobile-friendly form layout with custom color support
 * **PHPMailer Integration** - Reliable email delivery system
 * **Multiple Recipients** - Support for CC and BCC email addresses
+
+**🎨 Form Color Customization Features:**
+
+* **🎯 Complete Visual Control:**
+  - **Form Background Color** - Customize the entire contact form container background
+  - **Input Field Colors** - Set background and border colors for all input fields
+  - **Label Text Color** - Control the color of field labels and form instructions
+  - **Submit Button Styling** - Normal, hover, and text colors for the submit button
+  - **Reset Button Styling** - Complete color control for the optional reset button
+
+* **🔧 Professional Design Tools:**
+  - **Color Picker Interface** - Visual color selection with instant preview
+  - **Hex Code Input** - Direct entry of specific color codes (#ff0000, etc.)
+  - **Synchronized Controls** - Color picker and text input automatically sync
+  - **Enable/Disable Toggle** - Easy on/off control with automatic default restoration
+  - **Brand Integration Tips** - Built-in guidance for accessibility and design best practices
+
+* **⚡ Advanced Implementation:**
+  - **CSS Override System** - Uses !important declarations to ensure color consistency
+  - **Responsive Compatibility** - Custom colors work on all devices and screen sizes
+  - **Performance Optimized** - Only loads custom CSS when color customization is enabled
+  - **Safe Defaults** - Automatic fallback to original colors if customization is disabled
+  - **Professional Output** - Clean, semantic CSS that doesn't interfere with site performance
 
 **📥📤 Import/Export System Features:**
 
@@ -117,6 +151,7 @@ FormSpammerTrap Contact Form provides a secure, spam-resistant contact form for 
 * **FormSpammerTrap Core Cleanup** - Removes all FormSpammerTrap configuration options (fst_show_required_message, fst_cc_email, etc.)
 * **Database Tables Cleanup** - Safely removes FormSpammerTrap database tables (fst_* and formspammertrap* patterns only)
 * **Upload Folder Cleanup** - Completely removes upload folder and all contents (files, .htaccess, security files)
+* **Color Customization Cleanup** - Removes all custom color settings and CSS overrides
 * **Transients Cleanup** - Removes all cached data and temporary settings
 * **Cron Jobs Cleanup** - Removes scheduled cleanup tasks
 * **Zero Leftover Data** - Ensures no plugin traces remain in your database or file system
@@ -134,6 +169,7 @@ FormSpammerTrap Contact Form provides a secure, spam-resistant contact form for 
 * **Secure Submission Storage** - All form data stored with proper sanitization and validation
 * **Import Security** - CSV files validated and sanitized during import process
 * **Export Security** - Admin-only access to export functionality with nonce verification
+* **Color Customization Security** - All color inputs sanitized and validated for XSS prevention
 
 **File Upload Features:**
 
@@ -148,7 +184,7 @@ FormSpammerTrap Contact Form provides a secure, spam-resistant contact form for 
 
 **Easy to Use:**
 
-Simply add the `[formspammertrap]` shortcode to any page or post to display the contact form. The plugin includes a comprehensive admin interface for configuration, security monitoring, submission management, and data import/export.
+Simply add the `[formspammertrap]` shortcode to any page or post to display the contact form. The plugin includes a comprehensive admin interface for configuration, security monitoring, submission management, color customization, and data import/export.
 
 == Installation ==
 
@@ -170,14 +206,15 @@ Simply add the `[formspammertrap]` shortcode to any page or post to display the 
 **Configuration:**
 7. Go to Settings > FormSpammerTrap in your admin
 8. Set your email address (must be on your domain)
-9. Configure file upload options if desired
-10. Review security status and configure retention settings
-11. **NEW:** Access Settings > Form Submissions to view and manage all form submissions
-12. **NEW:** Use Settings > Import Submissions to import data from other contact form plugins
-13. **NEW:** Use Settings > Export Submissions to export your form data in multiple formats
+9. **NEW:** Configure form colors in the "Form Color Customization" section
+10. Configure file upload options if desired
+11. Review security status and configure retention settings
+12. Access Settings > Form Submissions to view and manage all form submissions
+13. Use Settings > Import Submissions to import data from other contact form plugins
+14. Use Settings > Export Submissions to export your form data in multiple formats
 
 **🗑️ Clean Removal:**
-When you no longer want the plugin, simply delete it from the Plugins page. The enhanced cleanup system will automatically remove all plugin data, uploaded files, form submissions, database entries, and configuration - leaving your site completely clean!
+When you no longer want the plugin, simply delete it from the Plugins page. The enhanced cleanup system will automatically remove all plugin data, uploaded files, form submissions, database entries, color customizations, and configuration - leaving your site completely clean!
 
 == Configuration ==
 
@@ -189,6 +226,32 @@ When you no longer want the plugin, simply delete it from the Plugins page. The 
 4. **Custom Thank You Message** - Personalize the success message
 5. **Max URLs Allowed** - Control spam by limiting URLs in messages (0-10)
 6. **Enable Reset Button** - Add a form reset option for users
+
+**🎨 Form Color Customization Settings:**
+
+1. **Enable Custom Colors** - Master toggle to enable/disable all color customizations
+2. **Form Colors Section:**
+   - **Form Background Color** - Set the background color for the entire contact form container
+   - **Input Field Background** - Customize the background color for all text inputs and textareas
+   - **Input Field Border** - Set the border color for all form input fields
+   - **Label Text Color** - Control the color of field labels and form instructions
+
+3. **Submit Button Colors Section:**
+   - **Submit Button Background** - Normal background color for the submit button
+   - **Submit Button Hover** - Background color when users hover over the submit button
+   - **Submit Button Text** - Text color for the submit button
+
+4. **Reset Button Colors Section (when reset button is enabled):**
+   - **Reset Button Background** - Normal background color for the reset button
+   - **Reset Button Hover** - Background color when users hover over the reset button
+   - **Reset Button Text** - Text color for the reset button
+
+5. **Color Customization Features:**
+   - **Visual Color Pickers** - Click to select colors using a visual interface
+   - **Hex Code Input** - Type specific color codes directly (e.g., #ff0000 for red)
+   - **Synchronized Controls** - Color picker and text input automatically sync
+   - **Built-in Tips** - Guidance for accessibility and brand consistency
+   - **Instant Preview** - Colors update immediately on your contact form
 
 **📊 Form Submissions Settings:**
 
@@ -245,6 +308,27 @@ Add this shortcode to any page or post:
 [formspammertrap email="contact@yourdomain.com",bcc="blind@example.com",cc="copy@example.com,another@example.com"]
 ```
 
+**🎨 Customizing Form Colors:**
+
+1. **Access Color Settings** - Go to Settings > FormSpammerTrap > Form Color Customization
+2. **Enable Customization** - Check "Override FormSpammerTrap's default form colors"
+3. **Choose Colors** - Use color pickers or enter hex codes directly:
+   - **Visual Method:** Click the color squares to open the color picker
+   - **Manual Method:** Type hex codes in the text fields (e.g., #ff0000 for red)
+   - **Synced Controls:** Changes in either method automatically update the other
+4. **Preview Changes** - Visit your contact form page to see colors update in real-time
+5. **Brand Integration** - Use colors that match your website's design
+6. **Accessibility Tips** - Ensure sufficient contrast between text and background colors
+7. **Save Settings** - Click "Save Settings" to apply your color scheme
+8. **Reset to Defaults** - Uncheck "Enable Custom Colors" to restore original colors
+
+**Color Customization Tips:**
+- **High Contrast:** Ensure text is readable against background colors
+- **Brand Consistency:** Use your website's existing color palette
+- **Testing:** Check colors on different devices and browsers
+- **Professional Colors:** Avoid overly bright or distracting color combinations
+- **Accessibility:** Consider color-blind users when choosing color schemes
+
 **📊 Managing Form Submissions:**
 
 1. **View All Submissions** - Go to Settings > Form Submissions
@@ -290,7 +374,7 @@ The contact form includes these standard fields:
 * **Message** (Required) - Main message content
 * **Attach File** (Optional) - Multiple file uploads with preview
 
-All fields include validation and spam protection features. File uploads include extension validation and security scanning. **All form data is automatically saved to the submissions dashboard for easy management and can be exported in multiple formats.**
+All fields include validation and spam protection features. File uploads include extension validation and security scanning. **All form data is automatically saved to the submissions dashboard for easy management and can be exported in multiple formats. Form appearance can be completely customized with the color customization system.**
 
 == 📊 Form Submissions Dashboard ==
 
@@ -398,6 +482,14 @@ All fields include validation and spam protection features. File uploads include
 * XSS protection on all output
 * CSRF protection for form actions
 
+**🎨 Color Customization Security:**
+* All color input values sanitized and validated
+* XSS prevention for custom CSS output
+* Secure storage of color preferences in database
+* Admin-only access to color customization settings
+* Safe CSS generation with proper escaping
+* No direct user input in CSS output
+
 **📥📤 Import/Export Security:**
 * Admin-only access to import/export functions
 * File type validation (CSV only for imports)
@@ -437,6 +529,21 @@ All fields include validation and spam protection features. File uploads include
 
 == Frequently Asked Questions ==
 
+= 🆕 How do I customize the colors of my contact form? =
+Go to Settings > FormSpammerTrap > Form Color Customization. Check "Enable Custom Colors" and use the color pickers or enter hex codes directly. You can customize form background, input fields, labels, and both submit and reset buttons. Colors update instantly on your contact form!
+
+= Can I use my website's brand colors? =
+Absolutely! The color customization system is designed for brand integration. Use your website's existing color palette to create a seamless design. You can enter specific hex codes (like #ff0000) or use the visual color picker to match your brand perfectly.
+
+= What if I want to restore the default colors? =
+Simply uncheck "Enable Custom Colors" in the Form Color Customization section and save your settings. This will instantly restore all original FormSpammerTrap colors while preserving your custom color settings for future use.
+
+= Do custom colors work on mobile devices? =
+Yes! The color customization system is fully responsive and works perfectly on all devices and screen sizes. Your custom colors will look great on desktop, tablet, and mobile devices.
+
+= How do I ensure my custom colors are accessible? =
+Follow these guidelines: ensure sufficient contrast between text and background colors, test with color-blind simulation tools, avoid using color alone to convey information, and preview your form on different devices. The plugin includes built-in accessibility tips in the admin interface.
+
 = 🆕 Can I import submissions from other contact form plugins? =
 Yes! The import system supports CSV files from Contact Form 7/Flamingo, Formidable Forms, and any other contact form plugin that can export to CSV format. The system automatically detects common field mappings and allows manual adjustment as needed.
 
@@ -454,7 +561,7 @@ You can export in five formats: CSV (Excel-compatible), JSON (for developers), X
 Absolutely! You can filter exports by status (unread, read, sent, failed), date range, and choose specific fields to include. The export system is very flexible.
 
 = What happens to my form submissions when I delete the plugin? =
-**All form submissions are permanently deleted!** Version 1.5.1 features comprehensive cleanup that removes all stored submissions along with files, configuration, and database entries. If you need to keep submission data, export or backup the information before deleting the plugin.
+**All form submissions are permanently deleted!** Version 1.5.2 features comprehensive cleanup that removes all stored submissions along with files, configuration, color customizations, and database entries. If you need to keep submission data, export or backup the information before deleting the plugin.
 
 = How do I access my form submissions? =
 Go to Settings > Form Submissions in your WordPress admin. You'll see a complete dashboard with all submissions, search functionality, and filtering options.
@@ -472,9 +579,9 @@ Absolutely! Click "View" on any submission and you'll find an admin notes sectio
 Click "View" on any submission, then click the "Reply via Email" button. This will open your default email client with the person's email address pre-filled.
 
 = What gets removed when I delete the plugin? =
-**Everything!** Version 1.5.1 features comprehensive cleanup that removes:
+**Everything!** Version 1.5.2 features comprehensive cleanup that removes:
 - All form submissions and related data
-- All plugin configuration options  
+- All plugin configuration options including color customizations
 - All FormSpammerTrap core options (fst_* database entries)
 - Upload folder and all files (including security files)
 - FormSpammerTrap database tables (if any)
@@ -562,6 +669,7 @@ The plugin includes a comprehensive installation status checker that verifies:
 * Core requirements
 * **NEW:** Submissions database table status
 * **NEW:** Import/Export functionality status
+* **NEW:** Color customization system status
 
 Check Settings > FormSpammerTrap > Installation Status for detailed status information.
 
@@ -574,10 +682,19 @@ The Security Status dashboard provides real-time monitoring of:
 * **Current Storage** - File count and disk usage statistics
 * **🆕 Submissions Database** - Table status and entry counts
 * **🆕 Import/Export Security** - Admin access and file validation status
+* **🆕 Color Customization Security** - CSS output validation and admin access control
 
 == Data Management ==
 
-**🆕 Enhanced in v1.5.1:**
+**🆕 Enhanced in v1.5.2:**
+
+**Color Customization Features:**
+- ✅ **Complete visual control** - Customize every aspect of form appearance
+- ✅ **Professional color tools** - Color pickers with hex code input
+- ✅ **Brand integration support** - Match your website's design perfectly
+- ✅ **Responsive design compatibility** - Works on all devices and screen sizes
+- ✅ **Accessibility guidance** - Built-in tips for proper color contrast
+- ✅ **Safe defaults and easy reset** - Restore original colors anytime
 
 **Import/Export Capabilities:**
 - ✅ **Import from any CSV source** - Contact Form 7, Formidable Forms, custom exports
@@ -590,6 +707,7 @@ The Security Status dashboard provides real-time monitoring of:
 **What Gets Cleaned Up on Plugin Deletion:**
 - ✅ **All form submissions and related data**
 - ✅ All plugin configuration (fst_default_email, fst_enable_uploads, etc.)
+- ✅ **All color customization settings** (fst_enable_custom_colors, fst_form_background_color, etc.)
 - ✅ All FormSpammerTrap core options (fst_show_required_message, fst_cc_email, etc.)
 - ✅ Upload folder and ALL contents (files, .htaccess, index.php, subdirectories)
 - ✅ FormSpammerTrap database tables (fst_* and formspammertrap* patterns only)
@@ -614,6 +732,7 @@ If you have important uploaded files or want to keep form submission data, use t
 4. Check the Installation Status and Security Status in the plugin settings
 5. **NEW:** Check the Form Submissions dashboard for submission-related issues
 6. **NEW:** Use the import/export functionality to migrate data between systems
+7. **NEW:** Review color customization settings if form appearance issues occur
 
 **Common Issues:**
 * **Blank page after submission** - Usually indicates a PHP error or missing files
@@ -626,11 +745,30 @@ If you have important uploaded files or want to keep form submission data, use t
 * **🆕 Can't access submissions dashboard** - Ensure you have admin privileges and the database table was created
 * **🆕 Import not working** - Check CSV format, file size (max 5MB), and field mappings
 * **🆕 Export files empty** - Verify you have submissions and check filter settings
+* **🆕 Custom colors not applying** - Check that "Enable Custom Colors" is checked and clear browser cache
+* **🆕 Colors look wrong on mobile** - Custom colors are responsive; check specific color choices and contrast
 
 **For FormSpammerTrap Core Issues Only:**
 Visit FormSpammerTrap.com for support with the core FormSpammerTrap system.
 
 == Changelog ==
+
+= 1.5.2 =
+* **🎨 COMPLETE FORM COLOR CUSTOMIZATION SYSTEM**
+* Professional color picker interface with hex code input for all form elements
+* Complete visual control over form background, input fields, labels, and buttons
+* Separate color customization for submit and reset buttons (normal, hover, text colors)
+* Brand integration support with accessibility guidelines and design tips
+* Responsive design compatibility ensuring custom colors work on all devices
+* Safe enable/disable toggle with automatic restoration of default colors
+* Synchronized color picker and text input controls for precise color matching
+* CSS override system using !important declarations for consistent color application
+* Performance optimized - custom CSS only loads when color customization is enabled
+* Comprehensive cleanup of all color settings during plugin uninstall
+* Professional admin interface with intuitive color management tools
+* Security enhancements with proper sanitization and validation of all color inputs
+* Integration with existing plugin features including submissions dashboard and import/export
+* Enhanced user experience with instant color preview and visual feedback
 
 = 1.5.1 =
 * **🆕 COMPLETE IMPORT/EXPORT SYSTEM**
@@ -732,6 +870,9 @@ Visit FormSpammerTrap.com for support with the core FormSpammerTrap system.
 
 == Upgrade Notice ==
 
+= 1.5.2 =
+🎨 Major Feature Update! Adds complete Form Color Customization System with professional color picker interface, brand integration support, and responsive design compatibility. Customize every aspect of your form's appearance including background, input fields, labels, and buttons. Perfect for matching your website's brand and creating a seamless user experience!
+
 = 1.5.1 =
 🆕 Major Feature Update! Adds complete Import/Export System with CSV import capabilities, multi-format exports, intelligent field mapping, and data migration tools. Perfect for switching from other contact form plugins or creating backups. Import from Contact Form 7, Formidable Forms, and more!
 
@@ -759,11 +900,12 @@ This plugin:
 * Processes form submissions and sends them via email
 * **🆕 Stores all form submissions in the database for admin management**
 * **🆕 Provides import/export capabilities for data management and migration**
+* **🆕 Stores color customization preferences in the database**
 * May temporarily store uploaded files based on retention settings
 * Uses session data temporarily for spam protection
 * May log basic form submission data if logging is enabled
 * Automatically deletes uploaded files according to configured retention periods
-* **🆕 Completely removes ALL data including form submissions when plugin is deleted**
+* **🆕 Completely removes ALL data including form submissions and color settings when plugin is deleted**
 * Respects visitor privacy while maintaining security
 
 **🆕 Form Submissions Privacy:**
@@ -773,6 +915,13 @@ This plugin:
 * Submissions include visitor IP addresses for security purposes
 * Admin notes are private and not visible to form submitters
 * **Complete removal of all submission data when plugin is uninstalled**
+
+**🆕 Color Customization Privacy:**
+* Color preferences are stored in your site's database
+* Only site administrators can access color customization settings
+* No personal data is collected through color customization features
+* Color settings are completely removed when plugin is uninstalled
+* Custom CSS is generated server-side with proper security validation
 
 **🆕 Import/Export Privacy:**
 * Import/export functions are admin-only capabilities
@@ -788,7 +937,7 @@ This plugin:
 * All file handling complies with GDPR requirements when using recommended settings
 * **Complete removal of all files and data when plugin is uninstalled**
 
-Form submissions are processed according to your site's privacy policy. Consider adding appropriate privacy notices for form users, especially regarding data storage, import/export capabilities, file uploads, and retention periods.
+Form submissions are processed according to your site's privacy policy. Consider adding appropriate privacy notices for form users, especially regarding data storage, import/export capabilities, file uploads, color customization, and retention periods.
 
 == Credits ==
 
@@ -800,6 +949,7 @@ Form submissions are processed according to your site's privacy policy. Consider
 * Enhanced cleanup system ensures responsible data management
 * **🆕 Form submissions system designed with security and privacy in mind**
 * **🆕 Import/export system designed for data portability and migration**
+* **🆕 Color customization system designed for accessibility and brand integration**
 
 == License ==
 
@@ -831,6 +981,16 @@ wp-content/plugins/formspammertrap-plugin/
 * **Security:** All queries use prepared statements and proper data sanitization
 * **Performance:** Indexed fields for efficient searching and filtering
 * **Privacy:** Complete table removal during plugin uninstall
+* **Color Settings:** Stored as WordPress options with proper validation
+
+**🆕 Color Customization Implementation:**
+* **CSS Generation:** Server-side generation with proper escaping and validation
+* **Performance:** Custom CSS only output when color customization is enabled
+* **Security:** All color inputs sanitized with hex color validation
+* **Compatibility:** Uses !important declarations to ensure color consistency
+* **Responsive:** Custom colors work across all device sizes and orientations
+* **Database Storage:** Color preferences stored as WordPress options
+* **Cleanup:** All color settings removed during plugin uninstall
 
 **🆕 Import/Export Implementation:**
 * **Import Support:** CSV files up to 5MB with up to 1,000 records
@@ -842,9 +1002,10 @@ wp-content/plugins/formspammertrap-plugin/
 **🆕 Cleanup Implementation:**
 * Enhanced recursive folder removal with subdirectory support
 * Safe database table cleanup using pattern matching
-* Complete options cleanup (plugin + FormSpammerTrap core)
+* Complete options cleanup (plugin + FormSpammerTrap core + color settings)
 * **Form submissions table and data removal**
 * **Import/export configuration cleanup**
+* **Color customization settings cleanup**
 * Automatic transients and cached data removal
 * Cron job cleanup and scheduled task removal
 * Comprehensive logging of all cleanup operations
@@ -858,6 +1019,7 @@ wp-content/plugins/formspammertrap-plugin/
 * **Secure form submission storage with validation**
 * **Admin-only access to submissions dashboard**
 * **Import/export security with file validation**
+* **Color customization XSS protection with input sanitization**
 * **XSS and CSRF protection for all admin functions**
 * **Complete security cleanup on plugin removal**
 
@@ -870,6 +1032,14 @@ wp-content/plugins/formspammertrap-plugin/
 * Admin notes system with update functionality
 * Email integration for direct communication
 * Dashboard widget with recent submissions and statistics
+
+**🆕 Color Customization System:**
+* Real-time CSS generation with security validation
+* Synchronized color picker and hex input controls
+* Responsive design support for all device types
+* Accessibility guidelines integration
+* Brand consistency tools and tips
+* Performance optimization with conditional CSS loading
 
 **🆕 Import/Export System:**
 * Secure file upload handling with validation
@@ -891,7 +1061,7 @@ Monitor your error logs during plugin deletion to see detailed cleanup reports:
 FormSpammerTrap Plugin: Starting comprehensive uninstall cleanup process
 FormSpammerTrap Plugin: Successfully removed upload folder 'fst-uploads' and X files
 FormSpammerTrap Plugin: Removed submissions table: wp_fst_submissions
-FormSpammerTrap Plugin: Removed X plugin-specific options
+FormSpammerTrap Plugin: Removed X plugin-specific options (including color settings)
 FormSpammerTrap Plugin: Removed X FormSpammerTrap core options
 FormSpammerTrap Plugin: Cleaned up FormSpammerTrap transients
 FormSpammerTrap Plugin: Comprehensive uninstall cleanup completed
@@ -900,6 +1070,14 @@ FormSpammerTrap Plugin: Comprehensive uninstall cleanup completed
 == Advanced Configuration ==
 
 **For Advanced Users:**
+
+**🆕 Color Customization Advanced Options:**
+The color customization system supports advanced CSS integration:
+* Custom colors use !important declarations for consistency
+* Colors are validated server-side for security
+* CSS is generated dynamically based on enabled options
+* Responsive design ensures colors work on all devices
+* Integration with existing FormSpammerTrap CSS classes
 
 **🆕 Import/Export Configuration:**
 The import/export system supports advanced customization:
@@ -941,6 +1119,14 @@ For users migrating between form systems:
 * Verify field mapping accuracy before final import
 * Consider data transformation needs for different systems
 
+**🆕 Color Customization Advanced Features:**
+For developers and advanced users:
+* Color values are stored as WordPress options with proper sanitization
+* CSS is generated server-side for security and performance
+* Custom colors can be programmatically accessed via get_option()
+* Integration with theme customizer is possible with custom development
+* CSS selectors target specific FormSpammerTrap elements for precision
+
 **🆕 Cleanup Customization:**
 The cleanup system is designed to be safe and comprehensive. Advanced users can modify cleanup patterns in the plugin source code, but this is not recommended as it may affect the safety of the cleanup process.
 
@@ -962,6 +1148,6 @@ If you find this plugin useful, consider supporting:
 ---
 
 **🆕 A Special Thank You:**
-The Form Submissions Management System and Import/Export functionality were developed through collaborative effort and community feedback. We appreciate all users who contribute to making this plugin better!
+The Form Submissions Management System, Import/Export functionality, and Color Customization System were developed through collaborative effort and community feedback. We appreciate all users who contribute to making this plugin better!
 
 Thank you for using FormSpammerTrap Contact Form!

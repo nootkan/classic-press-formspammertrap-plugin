@@ -3,7 +3,7 @@
  * Plugin Name: FormSpammerTrap Contact Form
  * Plugin URI: https://your-website.com
  * Description: Integrates FormSpammerTrap anti-spam contact form into ClassicPress with Fixed PHPMailer
- * Version: 1.5.1
+ * Version: 1.5.2
  * Author: Van Isle Web Solutions
  * License: GPL2
  * Requires at least: 4.9
@@ -47,6 +47,9 @@ class FormSpammerTrapPlugin {
     
     // NEW: Add dashboard widget
     add_action('wp_dashboard_setup', array($this, 'add_dashboard_widget'));
+	
+	// Add custom form colors CSS output
+    add_action('wp_head', array($this, 'output_custom_form_colors'));
 }
     
     /**
@@ -973,6 +976,31 @@ public function submissions_page() {
             update_option('fst_upload_extensions', sanitize_text_field($_POST['fst_upload_extensions']));
             update_option('fst_upload_folder', sanitize_text_field($_POST['fst_upload_folder']));
             update_option('fst_file_retention_days', intval($_POST['fst_file_retention_days']));
+			
+			// Color customization settings
+            update_option('fst_enable_custom_colors', isset($_POST['fst_enable_custom_colors']) ? 1 : 0);
+
+            // Validate and save color values
+            $color_fields = array(
+            'fst_form_background_color' => '#ffffff',
+            'fst_input_background_color' => '#FFFF9E', 
+            'fst_input_border_color' => '#ccc',
+            'fst_label_text_color' => '#333333',
+            'fst_submit_button_color' => '#38f923',
+            'fst_submit_button_hover_color' => '#00E000',
+            'fst_submit_button_text_color' => '#000000',
+            'fst_reset_button_color' => '#FF0000',
+            'fst_reset_button_hover_color' => '#FFFF00',
+            'fst_reset_button_text_color' => '#FFFFFF'
+);
+
+foreach ($color_fields as $field => $default) {
+    $color_value = isset($_POST[$field]) ? sanitize_hex_color($_POST[$field]) : $default;
+    if (!$color_value) {
+        $color_value = $default; // Use default if invalid color
+    }
+    update_option($field, $color_value);
+}
             
             // Create upload folder if it doesn't exist
             if (isset($_POST['fst_enable_uploads']) && $_POST['fst_enable_uploads']) {
@@ -1067,6 +1095,175 @@ public function submissions_page() {
                         </td>
                     </tr>
                 </table>
+				
+				<h2>Form Color Customization</h2>
+<table class="form-table">
+    <tr>
+        <th scope="row">Enable Custom Colors</th>
+        <td>
+            <label>
+                <input type="checkbox" name="fst_enable_custom_colors" value="1" <?php checked(get_option('fst_enable_custom_colors', 0), 1); ?> 
+                       onchange="toggleColorSettings(this.checked)" />
+                Override FormSpammerTrap's default form colors
+            </label>
+            <p class="description">When enabled, your custom colors will override the default FormSpammerTrap styling.</p>
+        </td>
+    </tr>
+</table>
+
+<div id="color-settings" style="<?php echo get_option('fst_enable_custom_colors', 0) ? '' : 'display:none;'; ?>">
+    <h3>Form Colors</h3>
+    <table class="form-table">
+        <tr>
+            <th scope="row">Form Background Color</th>
+            <td>
+                <input type="color" name="fst_form_background_color" value="<?php echo esc_attr(get_option('fst_form_background_color', '#ffffff')); ?>" 
+                       onchange="syncColorInputs(this, 'fst_form_background_color_text')" />
+                <input type="text" name="fst_form_background_color_text" id="fst_form_background_color_text" 
+                       value="<?php echo esc_attr(get_option('fst_form_background_color', '#ffffff')); ?>" class="regular-text"
+                       onchange="syncColorInputs(this, 'fst_form_background_color')" />
+                <p class="description">Background color for the entire contact form container.</p>
+            </td>
+        </tr>
+        
+        <tr>
+            <th scope="row">Input Field Background</th>
+            <td>
+                <input type="color" name="fst_input_background_color" value="<?php echo esc_attr(get_option('fst_input_background_color', '#FFFF9E')); ?>"
+                       onchange="syncColorInputs(this, 'fst_input_background_color_text')" />
+                <input type="text" name="fst_input_background_color_text" id="fst_input_background_color_text"
+                       value="<?php echo esc_attr(get_option('fst_input_background_color', '#FFFF9E')); ?>" class="regular-text"
+                       onchange="syncColorInputs(this, 'fst_input_background_color')" />
+                <p class="description">Background color for text inputs, email fields, and textareas.</p>
+            </td>
+        </tr>
+        
+        <tr>
+            <th scope="row">Input Field Border</th>
+            <td>
+                <input type="color" name="fst_input_border_color" value="<?php echo esc_attr(get_option('fst_input_border_color', '#ccc')); ?>"
+                       onchange="syncColorInputs(this, 'fst_input_border_color_text')" />
+                <input type="text" name="fst_input_border_color_text" id="fst_input_border_color_text"
+                       value="<?php echo esc_attr(get_option('fst_input_border_color', '#ccc')); ?>" class="regular-text"
+                       onchange="syncColorInputs(this, 'fst_input_border_color')" />
+                <p class="description">Border color for all input fields.</p>
+            </td>
+        </tr>
+        
+        <tr>
+            <th scope="row">Label Text Color</th>
+            <td>
+                <input type="color" name="fst_label_text_color" value="<?php echo esc_attr(get_option('fst_label_text_color', '#333333')); ?>"
+                       onchange="syncColorInputs(this, 'fst_label_text_color_text')" />
+                <input type="text" name="fst_label_text_color_text" id="fst_label_text_color_text"
+                       value="<?php echo esc_attr(get_option('fst_label_text_color', '#333333')); ?>" class="regular-text"
+                       onchange="syncColorInputs(this, 'fst_label_text_color')" />
+                <p class="description">Color for field labels and form instructions.</p>
+            </td>
+        </tr>
+    </table>
+    
+    <h3>Submit Button Colors</h3>
+    <table class="form-table">
+        <tr>
+            <th scope="row">Submit Button Background</th>
+            <td>
+                <input type="color" name="fst_submit_button_color" value="<?php echo esc_attr(get_option('fst_submit_button_color', '#38f923')); ?>"
+                       onchange="syncColorInputs(this, 'fst_submit_button_color_text')" />
+                <input type="text" name="fst_submit_button_color_text" id="fst_submit_button_color_text"
+                       value="<?php echo esc_attr(get_option('fst_submit_button_color', '#38f923')); ?>" class="regular-text"
+                       onchange="syncColorInputs(this, 'fst_submit_button_color')" />
+                <p class="description">Normal background color for the submit button.</p>
+            </td>
+        </tr>
+        
+        <tr>
+            <th scope="row">Submit Button Hover</th>
+            <td>
+                <input type="color" name="fst_submit_button_hover_color" value="<?php echo esc_attr(get_option('fst_submit_button_hover_color', '#00E000')); ?>"
+                       onchange="syncColorInputs(this, 'fst_submit_button_hover_color_text')" />
+                <input type="text" name="fst_submit_button_hover_color_text" id="fst_submit_button_hover_color_text"
+                       value="<?php echo esc_attr(get_option('fst_submit_button_hover_color', '#00E000')); ?>" class="regular-text"
+                       onchange="syncColorInputs(this, 'fst_submit_button_hover_color')" />
+                <p class="description">Background color when hovering over the submit button.</p>
+            </td>
+        </tr>
+        
+        <tr>
+            <th scope="row">Submit Button Text</th>
+            <td>
+                <input type="color" name="fst_submit_button_text_color" value="<?php echo esc_attr(get_option('fst_submit_button_text_color', '#000000')); ?>"
+                       onchange="syncColorInputs(this, 'fst_submit_button_text_color_text')" />
+                <input type="text" name="fst_submit_button_text_color_text" id="fst_submit_button_text_color_text"
+                       value="<?php echo esc_attr(get_option('fst_submit_button_text_color', '#000000')); ?>" class="regular-text"
+                       onchange="syncColorInputs(this, 'fst_submit_button_text_color')" />
+                <p class="description">Text color for the submit button.</p>
+            </td>
+        </tr>
+		
+		
+        
+        <tr>
+            <th scope="row">Reset Button Background</th>
+            <td>
+                <input type="color" name="fst_reset_button_color" value="<?php echo esc_attr(get_option('fst_reset_button_color', '#FF0000')); ?>"
+                       onchange="syncColorInputs(this, 'fst_reset_button_color_text')" />
+                <input type="text" name="fst_reset_button_color_text" id="fst_reset_button_color_text"
+                       value="<?php echo esc_attr(get_option('fst_reset_button_color', '#FF0000')); ?>" class="regular-text"
+                       onchange="syncColorInputs(this, 'fst_reset_button_color')" />
+                <p class="description">Normal background color for the reset button.</p>
+            </td>
+        </tr>
+        
+        <tr>
+            <th scope="row">Reset Button Hover</th>
+            <td>
+                <input type="color" name="fst_reset_button_hover_color" value="<?php echo esc_attr(get_option('fst_reset_button_hover_color', '#FFFF00')); ?>"
+                       onchange="syncColorInputs(this, 'fst_reset_button_hover_color_text')" />
+                <input type="text" name="fst_reset_button_hover_color_text" id="fst_reset_button_hover_color_text"
+                       value="<?php echo esc_attr(get_option('fst_reset_button_hover_color', '#FFFF00')); ?>" class="regular-text"
+                       onchange="syncColorInputs(this, 'fst_reset_button_hover_color')" />
+                <p class="description">Background color when hovering over the reset button.</p>
+            </td>
+        </tr>
+        
+        <tr>
+            <th scope="row">Reset Button Text</th>
+            <td>
+                <input type="color" name="fst_reset_button_text_color" value="<?php echo esc_attr(get_option('fst_reset_button_text_color', '#FFFFFF')); ?>"
+                       onchange="syncColorInputs(this, 'fst_reset_button_text_color_text')" />
+                <input type="text" name="fst_reset_button_text_color_text" id="fst_reset_button_text_color_text"
+                       value="<?php echo esc_attr(get_option('fst_reset_button_text_color', '#FFFFFF')); ?>" class="regular-text"
+                       onchange="syncColorInputs(this, 'fst_reset_button_text_color')" />
+                <p class="description">Text color for the reset button.</p>
+            </td>
+        </tr>
+    </table>
+    
+    <div style="background: #f0f8ff; border: 1px solid #0073aa; padding: 15px; border-radius: 5px; margin: 15px 0;">
+        <h4>💡 Color Customization Tips</h4>
+        <ul>
+            <li><strong>High Contrast:</strong> Ensure sufficient contrast between text and background colors for accessibility</li>
+            <li><strong>Brand Consistency:</strong> Use colors that match your website's overall design</li>
+            <li><strong>Testing:</strong> Preview your contact form after saving changes to ensure colors look good</li>
+            <li><strong>Color Codes:</strong> You can enter hex codes directly in the text fields (e.g., #ff0000 for red)</li>
+            <li><strong>Reset:</strong> To restore defaults, disable custom colors and re-enable them</li>
+        </ul>
+    </div>
+</div>
+
+<script type="text/javascript">
+function toggleColorSettings(enabled) {
+    document.getElementById('color-settings').style.display = enabled ? 'block' : 'none';
+}
+
+function syncColorInputs(sourceElement, targetName) {
+    var targetElement = document.querySelector('[name="' + targetName + '"]');
+    if (targetElement) {
+        targetElement.value = sourceElement.value;
+    }
+}
+</script>
                 
                 <h2>File Upload Settings</h2>
                 <table class="form-table">
@@ -1206,6 +1403,107 @@ public function submissions_page() {
                 <p><strong>Note:</strong> This requires custom implementation for file access and may not work on all hosting environments.</p>
             </div>
         </div>
+        <?php
+    }
+	
+	/**
+     * Output custom CSS for form colors
+     */
+    public function output_custom_form_colors() {
+        // Only output if custom colors are enabled
+        if (!get_option('fst_enable_custom_colors', 0)) {
+            return;
+        }
+        
+        // Get color values from database
+        $form_bg = get_option('fst_form_background_color', '#ffffff');
+        $input_bg = get_option('fst_input_background_color', '#FFFF9E');
+        $input_border = get_option('fst_input_border_color', '#ccc');
+        $label_color = get_option('fst_label_text_color', '#333333');
+        $submit_color = get_option('fst_submit_button_color', '#38f923');
+        $submit_hover = get_option('fst_submit_button_hover_color', '#00E000');
+        $submit_text = get_option('fst_submit_button_text_color', '#000000');
+		$reset_color = get_option('fst_reset_button_color', '#FF0000');
+        $reset_hover = get_option('fst_reset_button_hover_color', '#FFFF00');
+        $reset_text = get_option('fst_reset_button_text_color', '#FFFFFF');
+        
+        // Output custom CSS
+        ?>
+        <style type="text/css">
+        /* FormSpammerTrap Plugin - Custom Color Overrides */
+        
+        /* Form Container Background */
+        .fst_container,
+        .fst_comment_box {
+            background-color: <?php echo esc_attr($form_bg); ?> !important;
+        }
+        
+        /* Input Field Styling */
+        .fst_column_2 > input[type=text],
+        .fst_column_2 > input[type=email],
+        .fst_column_2 > input[type=url],
+        .fst_column_2 > input[type=tel],
+        .fst_column_2 > input[type=number],
+        .fst_column_2 > input[type=search],
+        .fst_column_2 > input[type=password],
+        .fst_column_2 > input[type=date],
+        .fst_column_2 > input[type=datetime-local],
+        .fst_column_2 > select,
+        .fst_column_2 > textarea {
+            background-color: <?php echo esc_attr($input_bg); ?> !important;
+            border-color: <?php echo esc_attr($input_border); ?> !important;
+        }
+        
+        /* Label Text Color */
+        .fst_column_1 label,
+        .fst_column_1,
+        .fst_formtop_message,
+        .fst_formtop_message strong {
+            color: <?php echo esc_attr($label_color); ?> !important;
+        }
+        
+        /* Submit Button Styling */
+        #<?php echo defined('FST_SUBMITBUTTON_ID') ? esc_attr(FST_SUBMITBUTTON_ID) : 'fst_submitbutton'; ?>,
+        button.fst_button,
+        .fst_column_2 > input[type=submit],
+        .fst_column_2 > button {
+            background-color: <?php echo esc_attr($submit_color); ?> !important;
+            color: <?php echo esc_attr($submit_text); ?> !important;
+            border: 1px solid <?php echo esc_attr($submit_color); ?> !important;
+        }
+        
+        /* Submit Button Hover */
+        #<?php echo defined('FST_SUBMITBUTTON_ID') ? esc_attr(FST_SUBMITBUTTON_ID) : 'fst_submitbutton'; ?>:hover,
+        button.fst_button:hover,
+        .fst_column_2 > input[type=submit]:hover,
+        .fst_column_2 > button:hover {
+            background-color: <?php echo esc_attr($submit_hover); ?> !important;
+            border-color: <?php echo esc_attr($submit_hover); ?> !important;
+        }
+        
+        /* File Upload Field Styling */
+        .fst_column_2 > input[type=file] {
+            background-color: <?php echo esc_attr($input_bg); ?> !important;
+            border-color: <?php echo esc_attr($input_border); ?> !important;
+        }
+		
+		/* Reset Button Styling */
+        #fst_plugin_reset_button,
+        .fst_reset_button,
+            button[type="button"].fst_reset_button {
+            background-color: <?php echo esc_attr($reset_color); ?> !important;
+            color: <?php echo esc_attr($reset_text); ?> !important;
+            border: 1px solid <?php echo esc_attr($reset_color); ?> !important;
+        }
+
+        /* Reset Button Hover */
+        #fst_plugin_reset_button:hover,
+        .fst_reset_button:hover,
+            button[type="button"].fst_reset_button:hover {
+            background-color: <?php echo esc_attr($reset_hover); ?> !important;
+            border-color: <?php echo esc_attr($reset_hover); ?> !important;
+        }
+        </style>
         <?php
     }
     
@@ -1598,6 +1896,18 @@ public function submissions_page() {
     add_option('fst_upload_extensions', '.pdf,.jpg,.jpeg,.png,.gif,.doc,.docx');
     add_option('fst_upload_folder', 'fst-uploads');
     add_option('fst_file_retention_days', 30);
+    add_option('fst_enable_custom_colors', 0);
+    add_option('fst_form_background_color', '#ffffff');
+    add_option('fst_input_background_color', '#FFFF9E');
+    add_option('fst_input_border_color', '#ccc');
+    add_option('fst_label_text_color', '#333333');
+    add_option('fst_submit_button_color', '#38f923');
+    add_option('fst_submit_button_hover_color', '#00E000');
+    add_option('fst_submit_button_text_color', '#000000');
+	add_option('fst_submit_button_text_color', '#000000');
+    add_option('fst_reset_button_color', '#FF0000');
+    add_option('fst_reset_button_hover_color', '#FFFF00');
+    add_option('fst_reset_button_text_color', '#FFFFFF');
     
     // NEW: Create submissions table
     $this->create_submissions_table();
@@ -1909,7 +2219,18 @@ Deny from all
             'fst_upload_folder',
             'fst_file_retention_days',
             'fst_save_contact_info',
-            'fst_contact_database'
+            'fst_contact_database',
+            'fst_enable_custom_colors',
+            'fst_form_background_color',
+            'fst_input_background_color',
+            'fst_input_border_color',
+            'fst_label_text_color',
+            'fst_submit_button_color',
+            'fst_submit_button_hover_color',
+            'fst_submit_button_text_color',
+            'fst_reset_button_color',
+            'fst_reset_button_hover_color',
+            'fst_reset_button_text_color'
         );
         
         $deleted_count = 0;
