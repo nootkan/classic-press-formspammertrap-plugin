@@ -488,7 +488,7 @@ public function submissions_page() {
     <div class="wrap">
         <h1>Form Submissions 
             <?php if (!empty($status_filter)): ?>
-                <span class="subtitle">- <?php echo ucfirst($status_filter); ?></span>
+                <span class="subtitle">- <?php echo esc_html(ucfirst($status_filter)); ?></span>
             <?php endif; ?>
         </h1>
         
@@ -1004,13 +1004,28 @@ foreach ($color_fields as $field => $default) {
             
             // Create upload folder if it doesn't exist
             if (isset($_POST['fst_enable_uploads']) && $_POST['fst_enable_uploads']) {
-                $upload_folder = ABSPATH . sanitize_text_field($_POST['fst_upload_folder']) . '/';
+                // Sanitize and validate the upload folder path to prevent path traversal
+                $folder_name = sanitize_text_field($_POST['fst_upload_folder']);
+                // Remove any path traversal attempts
+                $folder_name = str_replace(['../', '..\\', '../\\', '\\../'], '', $folder_name);
+                // Remove any leading/trailing slashes and only keep the folder name
+                $folder_name = trim($folder_name, '/\\');
+                // Only allow alphanumeric characters, hyphens, and underscores
+                $folder_name = preg_replace('/[^a-zA-Z0-9_-]/', '', $folder_name);
+
+                // Get WordPress uploads directory (safer than ABSPATH)
+                $wp_uploads = wp_upload_dir();
+                $upload_folder = trailingslashit($wp_uploads['basedir']) . $folder_name . '/';
+				
                 if (!is_dir($upload_folder)) {
-                    if (wp_mkdir_p($upload_folder)) {
-                        $this->create_htaccess_protection($upload_folder);
-                        echo '<div class="notice notice-success"><p><strong>Upload folder created successfully with security protection!</strong></p></div>';
-                    } else {
-                        echo '<div class="notice notice-warning"><p><strong>Could not create upload folder automatically.</strong> Please create it manually: <code>' . $upload_folder . '</code></p></div>';
+                    // Sanitize and validate the upload folder path
+                    $sanitized_upload_folder = $this->sanitize_upload_path($upload_folder);
+
+                if ($sanitized_upload_folder && wp_mkdir_p($sanitized_upload_folder)) {
+                   $this->create_htaccess_protection($sanitized_upload_folder);
+                   echo '<div class="notice notice-success"><p><strong>Upload folder created successfully with security protection!</strong></p></div>';
+                } else {
+                        echo '<div class="notice notice-warning"><p><strong>Could not create upload folder automatically.</strong> Please create it manually: <code>' . esc_html($upload_folder) . '</code></p></div>';
                     }
                 } else {
                     // Ensure .htaccess exists for existing folders
@@ -1057,8 +1072,8 @@ foreach ($color_fields as $field => $default) {
                         <th scope="row">Default Email Address</th>
                         <td>
                             <input type="text" name="fst_default_email" value="<?php echo esc_attr($default_email); ?>" class="regular-text" />
-                            <p class="description">Email address to receive contact form submissions. Must be on your domain: <strong><?php echo $_SERVER['HTTP_HOST']; ?></strong></p>
-                            <p class="description">For your local site, use: <code>webmaster@<?php echo $_SERVER['HTTP_HOST']; ?></code></p>
+                            <p class="description">Email address to receive contact form submissions. Must be on your domain: <strong><?php echo esc_html($_SERVER['HTTP_HOST']); ?></strong></p>
+                            <p class="description">For your local site, use: <code>webmaster@<?php echo esc_html($_SERVER['HTTP_HOST']); ?></code></p>
                         </td>
                     </tr>
                 </table>
@@ -2347,12 +2362,24 @@ if (!empty($plugin_email)) {
     $recipient = !empty($message_elements['recipient']) ? $message_elements['recipient'] : 
                  (defined('FST_XEMAIL_ON_DOMAIN') ? FST_XEMAIL_ON_DOMAIN : get_option('admin_email'));
 }
+
+    // Sanitize message elements to prevent email injection
+    if (!empty($message_elements['subject'])) {
+        $message_elements['subject'] = sanitize_text_field($message_elements['subject']);
+    }
+    if (!empty($message_elements['from_name'])) {
+        $message_elements['from_name'] = sanitize_text_field($message_elements['from_name']);
+    }
+    if (!empty($message_elements['from_email'])) {
+        $message_elements['from_email'] = sanitize_email($message_elements['from_email']);
+    }
+
     $subject = !empty($message_elements['subject']) ? $message_elements['subject'] : 
-               (isset($_POST['your_subject']) ? 'Contact Form Message: ' . $_POST['your_subject'] : 'Contact Form Message');
+               (isset($_POST['your_subject']) ? 'Contact Form Message: ' . sanitize_text_field($_POST['your_subject']) : 'Contact Form Message');
     $from_email = !empty($message_elements['from_email']) ? $message_elements['from_email'] :
                   (defined('FST_FROM_EMAIL') ? FST_FROM_EMAIL : get_option('fst_default_email'));
     $from_name = !empty($message_elements['from_name']) ? $message_elements['from_name'] :
-                 (defined('FST_FROM_NAME') ? FST_FROM_NAME : $_SERVER['HTTP_HOST']);
+                 (defined('FST_FROM_NAME') ? FST_FROM_NAME : sanitize_text_field($_SERVER['HTTP_HOST']));
     
     // Load PHPMailer if not already loaded
     if (!class_exists('PHPMailer\PHPMailer\PHPMailer')) {
@@ -2363,7 +2390,8 @@ if (!empty($plugin_email)) {
             require_once $phpmailer_path . 'SMTP.php';
         } else {
             // Fallback to system mail if PHPMailer not available
-            $headers = "From: $from_email\r\nReply-To: " . $_POST['your_email'] . "\r\n";
+            $safe_reply_email = isset($_POST['your_email']) ? sanitize_email($_POST['your_email']) : '';
+            $headers = "From: $from_email\r\nReply-To: $safe_reply_email\r\n";
             $mail_result = mail($recipient, $subject, $message_elements['message'], $headers);
             
             // Update submission status based on email result
@@ -2442,7 +2470,18 @@ if (!empty($plugin_email)) {
         }
         
         if (!empty($upload_status)) {
-            $message .= "<hr><h4>File Upload Status:</h4>" . $upload_status;
+            // Sanitize upload status to prevent HTML injection in email
+            $safe_upload_status = wp_kses($upload_status, array(
+                'p' => array(),
+                'ul' => array(),
+                'li' => array(),
+                'strong' => array(),
+                'em' => array(),
+                'br' => array(),
+                'hr' => array(),
+                'h4' => array()
+            ));
+            $message .= "<hr><h4>File Upload Status:</h4>" . $safe_upload_status;
         }
         
         $mail->Body = $message;
@@ -2549,16 +2588,35 @@ function fst_handle_file_uploads_alt($mail) {
                 // Save file to upload folder if retention period allows
                 $retention_days = get_option('fst_file_retention_days', 30);
                 if ($retention_days > 0) {
-                    $upload_dir = ABSPATH . $upload_folder . '/';
-                    if (!is_dir($upload_dir)) {
-                        wp_mkdir_p($upload_dir);
-                    }
-                    
-                    $save_path = $upload_dir . $filename;
-                    if (copy($temp_file, $save_path)) {
-                        $status_msg .= "<li>File saved to: /{$upload_folder}/{$filename} (will be deleted after {$retention_days} days)</li>";
-                    }
+                // Sanitize the filename to prevent path traversal
+                $safe_filename = sanitize_file_name($filename);
+                // Remove any remaining path traversal attempts
+                $safe_filename = str_replace(['../', '..\\', '../\\', '\\../'], '', $safe_filename);
+                $safe_filename = basename($safe_filename); // Extra safety
+    
+                // Use WordPress uploads directory instead of ABSPATH
+                $wp_uploads = wp_upload_dir();
+                $safe_upload_folder = str_replace(['../', '..\\', '../\\', '\\../'], '', $upload_folder);
+                $upload_dir = trailingslashit($wp_uploads['basedir']) . $safe_upload_folder . '/';
+    
+                if (!is_dir($upload_dir)) {
+                    wp_mkdir_p($upload_dir);
+            }
+    
+                $save_path = $upload_dir . $safe_filename;
+    
+                // Final security check - ensure the path is within the intended directory
+                $real_upload_dir = realpath($upload_dir);
+                $real_save_path = realpath(dirname($save_path)) . '/' . basename($save_path);
+    
+                if ($real_upload_dir && strpos($real_save_path, $real_upload_dir) === 0) {
+                if (copy($temp_file, $save_path)) {
+                         $status_msg .= "<li>File saved to: /{$safe_upload_folder}/{$safe_filename} (will be deleted after {$retention_days} days)</li>";
                 }
+            } else {
+                $status_msg .= "<li>❌ Security error: Invalid file path for {$filename}</li>";
+                }
+            }
                 
             } else {
                 $status_msg .= "<li>❌ Failed to attach {$filename}</li>";
