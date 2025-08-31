@@ -3,7 +3,7 @@
  * Plugin Name: FormSpammerTrap Contact Form
  * Plugin URI: https://your-website.com
  * Description: Integrates FormSpammerTrap anti-spam contact form into ClassicPress with Fixed PHPMailer
- * Version: 1.5.2
+ * Version: 1.5.3
  * Author: Van Isle Web Solutions
  * License: GPL2
  * Requires at least: 4.9
@@ -2392,7 +2392,9 @@ if (!empty($plugin_email)) {
             // Fallback to system mail if PHPMailer not available
             $safe_reply_email = isset($_POST['your_email']) ? sanitize_email($_POST['your_email']) : '';
             $headers = "From: $from_email\r\nReply-To: $safe_reply_email\r\n";
-            $mail_result = mail($recipient, $subject, $message_elements['message'], $headers);
+            // Sanitize message content to prevent email injection
+            $safe_message = wp_kses_post($message_elements['message']);
+            $mail_result = mail($recipient, $subject, $safe_message, $headers);
             
             // Update submission status based on email result
             if ($submission_id) {
@@ -2484,8 +2486,10 @@ if (!empty($plugin_email)) {
             $message .= "<hr><h4>File Upload Status:</h4>" . $safe_upload_status;
         }
         
-        $mail->Body = $message;
-        $mail->AltBody = strip_tags($message);
+        // Sanitize message content for email body to prevent injection
+        $safe_message = wp_kses_post($message);
+        $mail->Body = $safe_message;
+        $mail->AltBody = strip_tags($safe_message);
         
         // Send the email
         $mail_sent = $mail->send();
