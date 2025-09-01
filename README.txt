@@ -14,6 +14,9 @@ Professional anti-spam contact form with submission management, file uploads, im
 
 FormSpammerTrap Contact Form provides a secure, spam-resistant contact form for your ClassicPress/Wordpress website. Built on the proven FormSpammerTrap anti-spam system, this plugin offers advanced protection against bots, spammers, and automated attacks while maintaining excellent usability for legitimate visitors.
 
+**🆕 NEW in v1.5.3:
+* **🔒 Critical Security Update! Fixes multiple XSS, Path Traversal, and Email Content Injection vulnerabilities. Comprehensive security improvements with enhanced input validation and sanitization. Highly recommended update for all users. All functionality preserved while significantly improving security.
+
 **🆕 NEW in v1.5.2: Complete Form Color Customization System**
 
 * **🎨 Visual Form Designer** - Complete control over all form colors and appearance
@@ -754,18 +757,23 @@ Visit FormSpammerTrap.com for support with the core FormSpammerTrap system.
 == Changelog ==
 
 = 1.5.3 =
-* **🔒 MAJOR SECURITY UPDATE**
-* Fixed XSS (Cross-Site Scripting) vulnerabilities in admin interface output
-* Fixed Path Traversal vulnerabilities in file upload and directory creation functions
-* Fixed Email Content Injection vulnerabilities in form submission processing
+* **🔒 COMPREHENSIVE SECURITY UPDATE**
+* Fixed multiple XSS (Cross-Site Scripting) vulnerabilities in admin interface output
 * Enhanced input sanitization using WordPress security functions (esc_html, sanitize_text_field, sanitize_email)
+* Fixed Path Traversal vulnerabilities in file upload and directory creation functions
 * Improved file upload path validation to prevent directory traversal attacks
-* Strengthened email content filtering to prevent malicious HTML injection
-* Added comprehensive input validation for all user-controlled data
-* Enhanced security for upload folder creation and file handling
+* Strengthened upload folder creation security with proper path sanitization
+* Fixed Email Content Injection vulnerabilities in form submission processing
+* Enhanced email content filtering to prevent malicious HTML injection in email bodies
 * Improved email header sanitization to prevent header injection attacks
-* Security fixes apply to both WordPress and ClassicPress installations
+* Added comprehensive input validation for all user-controlled data throughout the plugin
+* Enhanced security for HTTP_HOST usage with proper sanitization and WordPress core functions
+* Improved email notification system with secure content handling
 * All security improvements maintain full plugin functionality and compatibility
+* Enhanced notification email system focuses on essential information while preserving all data in submissions dashboard
+* Comprehensive security audit completed with professional-grade vulnerability remediation
+* Security fixes apply to both WordPress and ClassicPress installations
+* All changes follow WordPress coding standards and security best practices
 
 = 1.5.2 =
 * **🎨 COMPLETE FORM COLOR CUSTOMIZATION SYSTEM**
