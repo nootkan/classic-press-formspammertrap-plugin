@@ -2391,9 +2391,12 @@ if (defined('FST_FROM_NAME')) {
     if (!class_exists('PHPMailer\PHPMailer\PHPMailer')) {
         $phpmailer_path = plugin_dir_path(__FILE__) . 'includes/phpmailer/';
         if (file_exists($phpmailer_path . 'Exception.php')) {
-            require_once $phpmailer_path . 'Exception.php';
-            require_once $phpmailer_path . 'PHPMailer.php';
-            require_once $phpmailer_path . 'SMTP.php';
+            // Use WordPress's built-in PHPMailer
+		if (!class_exists('PHPMailer\PHPMailer\PHPMailer')) {
+		    require_once ABSPATH . WPINC . '/PHPMailer/Exception.php';
+			require_once ABSPATH . WPINC . '/PHPMailer/PHPMailer.php';
+			require_once ABSPATH . WPINC . '/PHPMailer/SMTP.php';
+		}
         } else {
             // Fallback to system mail if PHPMailer not available
             $static_headers = "From: " . get_option('admin_email') . "\r\nReply-To: " . get_option('admin_email') . "\r\n";
