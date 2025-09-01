@@ -2471,7 +2471,12 @@ if (defined('FST_FROM_NAME')) {
 
             if (isset($_POST['your_email']) && is_email($_POST['your_email'])) {
                 if (isset($_POST['your_email']) && is_email($_POST['your_email'])) {
-    $message .= "<p><strong>Email:</strong> " . esc_html($_POST['your_email']) . "</p>";
+    $clean_email = filter_var($_POST['your_email'], FILTER_SANITIZE_EMAIL);
+    if ($clean_email && is_email($clean_email)) {
+        $message .= "<p><strong>Email:</strong> " . esc_html($clean_email) . "</p>";
+    } else {
+        $message .= "<p><strong>Email:</strong> [Email sanitization failed]</p>";
+    }
 } else {
     $message .= "<p><strong>Email:</strong> [Invalid email provided]</p>";
 }
