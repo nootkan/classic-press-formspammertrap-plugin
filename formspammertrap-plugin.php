@@ -2470,7 +2470,11 @@ if (defined('FST_FROM_NAME')) {
             }
 
             if (isset($_POST['your_email']) && is_email($_POST['your_email'])) {
-                $message .= "<p><strong>Email:</strong> " . esc_html($_POST['your_email']) . "</p>";
+                if (isset($_POST['your_email']) && is_email($_POST['your_email'])) {
+    $message .= "<p><strong>Email:</strong> " . esc_html($_POST['your_email']) . "</p>";
+} else {
+    $message .= "<p><strong>Email:</strong> [Invalid email provided]</p>";
+}
             }
 
             if (isset($_POST['your_subject'])) {
