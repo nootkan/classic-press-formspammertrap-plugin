@@ -753,6 +753,20 @@ Visit FormSpammerTrap.com for support with the core FormSpammerTrap system.
 
 == Changelog ==
 
+= 1.5.3 =
+* **🔒 MAJOR SECURITY UPDATE**
+* Fixed XSS (Cross-Site Scripting) vulnerabilities in admin interface output
+* Fixed Path Traversal vulnerabilities in file upload and directory creation functions
+* Fixed Email Content Injection vulnerabilities in form submission processing
+* Enhanced input sanitization using WordPress security functions (esc_html, sanitize_text_field, sanitize_email)
+* Improved file upload path validation to prevent directory traversal attacks
+* Strengthened email content filtering to prevent malicious HTML injection
+* Added comprehensive input validation for all user-controlled data
+* Enhanced security for upload folder creation and file handling
+* Improved email header sanitization to prevent header injection attacks
+* Security fixes apply to both WordPress and ClassicPress installations
+* All security improvements maintain full plugin functionality and compatibility
+
 = 1.5.2 =
 * **🎨 COMPLETE FORM COLOR CUSTOMIZATION SYSTEM**
 * Professional color picker interface with hex code input for all form elements
