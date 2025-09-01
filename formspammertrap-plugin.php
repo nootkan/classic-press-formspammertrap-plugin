@@ -2355,35 +2355,37 @@ function FST_MAIL_ALT($data = array()) {
     // If FormSpammerTrap passed us message elements, use them
     // Otherwise, build from $_POST data
     // FORCE use of plugin's email setting
+// Use hardcoded/validated email parameters to prevent injection
 $plugin_email = get_option('fst_default_email');
-if (!empty($plugin_email)) {
+if (!empty($plugin_email) && is_email($plugin_email)) {
     $recipient = $plugin_email;
 } else {
-    $recipient = !empty($message_elements['recipient']) ? $message_elements['recipient'] : 
-                 (defined('FST_XEMAIL_ON_DOMAIN') ? FST_XEMAIL_ON_DOMAIN : get_option('admin_email'));
+    $recipient = get_option('admin_email'); // WordPress default
 }
 
-    // Sanitize message elements to prevent email injection
-    if (!empty($message_elements['subject'])) {
-        $message_elements['subject'] = sanitize_text_field($message_elements['subject']);
-    }
-    if (!empty($message_elements['from_name'])) {
-        $message_elements['from_name'] = sanitize_text_field($message_elements['from_name']);
-    }
-    if (!empty($message_elements['from_email'])) {
-        $message_elements['from_email'] = sanitize_email($message_elements['from_email']);
-    }
-	
-	if (!empty($message_elements['message'])) {
-    $message_elements['message'] = wp_kses_post($message_elements['message']);
-    }
+// Use only safe, validated subject
+if (!empty($message_elements['subject']) && is_string($message_elements['subject'])) {
+    $clean_subject = preg_replace('/[^\w\s\-\.\,\!\?]/', '', $message_elements['subject']);
+    $subject = 'Contact Form: ' . substr($clean_subject, 0, 100);
+} else {
+    $subject = 'Contact Form Message'; // Static fallback
+}
 
-    $subject = !empty($message_elements['subject']) ? $message_elements['subject'] : 
-               (isset($_POST['your_subject']) ? 'Contact Form Message: ' . sanitize_text_field($_POST['your_subject']) : 'Contact Form Message');
-    $from_email = !empty($message_elements['from_email']) ? $message_elements['from_email'] :
-                  (defined('FST_FROM_EMAIL') ? FST_FROM_EMAIL : get_option('fst_default_email'));
-    $from_name = !empty($message_elements['from_name']) ? $message_elements['from_name'] :
-                 (defined('FST_FROM_NAME') ? FST_FROM_NAME : sanitize_text_field($_SERVER['HTTP_HOST']));
+// Use only validated email addresses
+if (defined('FST_FROM_EMAIL') && is_email(FST_FROM_EMAIL)) {
+    $from_email = FST_FROM_EMAIL;
+} elseif (!empty($plugin_email) && is_email($plugin_email)) {
+    $from_email = $plugin_email;
+} else {
+    $from_email = get_option('admin_email'); // WordPress default
+}
+
+// Use only safe from name
+if (defined('FST_FROM_NAME')) {
+    $from_name = FST_FROM_NAME;
+} else {
+    $from_name = get_bloginfo('name'); // WordPress site name instead of HTTP_HOST
+}
     
     // Load PHPMailer if not already loaded
     if (!class_exists('PHPMailer\PHPMailer\PHPMailer')) {
@@ -2394,11 +2396,10 @@ if (!empty($plugin_email)) {
             require_once $phpmailer_path . 'SMTP.php';
         } else {
             // Fallback to system mail if PHPMailer not available
-            $safe_reply_email = isset($_POST['your_email']) ? sanitize_email($_POST['your_email']) : '';
-            $headers = "From: $from_email\r\nReply-To: $safe_reply_email\r\n";
-            // Sanitize message content to prevent email injection
-            $safe_message = wp_kses_post($message_elements['message']);
-            $mail_result = mail($recipient, $subject, $safe_message, $headers);
+            $static_headers = "From: " . get_option('admin_email') . "\r\nReply-To: " . get_option('admin_email') . "\r\n";
+            $static_subject = "Contact Form Submission";
+            $static_message = "A contact form was submitted. Check admin for details.";
+            $mail_result = mail($recipient, $static_subject, $static_message, $static_headers);
             
             // Update submission status based on email result
             if ($submission_id) {
@@ -2462,11 +2463,26 @@ if (!empty($plugin_email)) {
             $message = $message_elements['message'];
         } else {
             $message = "<h3>Contact Form Message</h3>";
-            $message .= "<p><strong>From:</strong> " . (isset($_POST['your_name']) ? sanitize_text_field($_POST['your_name']) : 'Unknown') . "</p>";
-            $message .= "<p><strong>Email:</strong> " . (isset($_POST['your_email']) ? sanitize_email($_POST['your_email']) : 'Unknown') . "</p>";
-            $message .= "<p><strong>Subject:</strong> " . (isset($_POST['your_subject']) ? sanitize_text_field($_POST['your_subject']) : 'No subject') . "</p>";
+            // Only use validated, limited data
+            if (isset($_POST['your_name'])) {
+                $safe_name = preg_replace('/[^\w\s\-\.]/', '', $_POST['your_name']);
+                $message .= "<p><strong>From:</strong> " . esc_html(substr($safe_name, 0, 100)) . "</p>";
+            }
+
+            if (isset($_POST['your_email']) && is_email($_POST['your_email'])) {
+                $message .= "<p><strong>Email:</strong> " . esc_html($_POST['your_email']) . "</p>";
+            }
+
+            if (isset($_POST['your_subject'])) {
+                $safe_subject = preg_replace('/[^\w\s\-\.\,\!\?]/', '', $_POST['your_subject']);
+                $message .= "<p><strong>Subject:</strong> " . esc_html(substr($safe_subject, 0, 100)) . "</p>";
+            }
+
             $message .= "<p><strong>Message:</strong></p>";
-            $message .= "<p>" . (isset($_POST['message']) ? nl2br(wp_kses_post($_POST['message'])) : 'No message') . "</p>";
+            if (isset($_POST['message'])) {
+                $safe_message = wp_kses($_POST['message'], array('p' => array(), 'br' => array()));
+                $message .= "<div>" . nl2br(esc_html($safe_message)) . "</div>";
+            }
         }
         
         // Handle file attachments
