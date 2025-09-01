@@ -2373,6 +2373,10 @@ if (!empty($plugin_email)) {
     if (!empty($message_elements['from_email'])) {
         $message_elements['from_email'] = sanitize_email($message_elements['from_email']);
     }
+	
+	if (!empty($message_elements['message'])) {
+    $message_elements['message'] = wp_kses_post($message_elements['message']);
+    }
 
     $subject = !empty($message_elements['subject']) ? $message_elements['subject'] : 
                (isset($_POST['your_subject']) ? 'Contact Form Message: ' . sanitize_text_field($_POST['your_subject']) : 'Contact Form Message');
@@ -2458,11 +2462,11 @@ if (!empty($plugin_email)) {
             $message = $message_elements['message'];
         } else {
             $message = "<h3>Contact Form Message</h3>";
-            $message .= "<p><strong>From:</strong> " . (isset($_POST['your_name']) ? $_POST['your_name'] : 'Unknown') . "</p>";
-            $message .= "<p><strong>Email:</strong> " . (isset($_POST['your_email']) ? $_POST['your_email'] : 'Unknown') . "</p>";
-            $message .= "<p><strong>Subject:</strong> " . (isset($_POST['your_subject']) ? $_POST['your_subject'] : 'No subject') . "</p>";
+            $message .= "<p><strong>From:</strong> " . (isset($_POST['your_name']) ? sanitize_text_field($_POST['your_name']) : 'Unknown') . "</p>";
+            $message .= "<p><strong>Email:</strong> " . (isset($_POST['your_email']) ? sanitize_email($_POST['your_email']) : 'Unknown') . "</p>";
+            $message .= "<p><strong>Subject:</strong> " . (isset($_POST['your_subject']) ? sanitize_text_field($_POST['your_subject']) : 'No subject') . "</p>";
             $message .= "<p><strong>Message:</strong></p>";
-            $message .= "<p>" . (isset($_POST['message']) ? nl2br(htmlspecialchars($_POST['message'])) : 'No message') . "</p>";
+            $message .= "<p>" . (isset($_POST['message']) ? nl2br(wp_kses_post($_POST['message'])) : 'No message') . "</p>";
         }
         
         // Handle file attachments

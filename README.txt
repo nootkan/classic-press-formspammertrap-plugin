@@ -3,7 +3,7 @@ Contributors: Van Isle Web Solutions
 Tags: contact form, spam protection, anti-spam, form security, email, file uploads, form submissions, dashboard, import, export, color customization
 Requires at least: 4.9
 Tested up to: 6.8.2
-Stable tag: 1.5.2
+Stable tag: 1.5.3
 Requires PHP: => 7.2
 License: GPL2
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
