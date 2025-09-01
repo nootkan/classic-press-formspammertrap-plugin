@@ -2665,7 +2665,7 @@ function FST_MORE_FIELDS() {
         $FST_XEMAIL_ON_DOMAIN = $default_email;
         $FST_FROM_EMAIL = $default_email;
     } else {
-        $domain = $_SERVER['HTTP_HOST'];
+        $domain = parse_url(get_site_url(), PHP_URL_HOST);
         $FST_XEMAIL_ON_DOMAIN = 'noreply@' . $domain;
         $FST_FROM_EMAIL = 'noreply@' . $domain;
     }
