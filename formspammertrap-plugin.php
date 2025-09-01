@@ -2345,7 +2345,7 @@ function FST_MAIL_ALT($data = array()) {
             'subject' => isset($data['your_subject']) ? $data['your_subject'] : 'Contact Form Message',
             'message' => isset($data['your_message']) ? $data['your_message'] : '',
             'from_email' => defined('FST_FROM_EMAIL') ? FST_FROM_EMAIL : get_option('fst_default_email'),
-            'from_name' => defined('FST_FROM_NAME') ? FST_FROM_NAME : $_SERVER['HTTP_HOST']
+            'from_name' => defined('FST_FROM_NAME') ? FST_FROM_NAME : parse_url(get_site_url(), PHP_URL_HOST)
         );
     } else {
         // Old message_elements structure - use as-is
