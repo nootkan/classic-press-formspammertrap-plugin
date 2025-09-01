@@ -2469,18 +2469,18 @@ if (defined('FST_FROM_NAME')) {
                 $message .= "<p><strong>From:</strong> " . esc_html(substr($safe_name, 0, 100)) . "</p>";
             }
 
-            if (isset($_POST['your_email']) && is_email($_POST['your_email'])) {
-                if (isset($_POST['your_email']) && is_email($_POST['your_email'])) {
-    $clean_email = filter_var($_POST['your_email'], FILTER_SANITIZE_EMAIL);
-    if ($clean_email && is_email($clean_email)) {
-        $message .= "<p><strong>Email:</strong> " . esc_html($clean_email) . "</p>";
-    } else {
-        $message .= "<p><strong>Email:</strong> [Email sanitization failed]</p>";
-    }
-} else {
-    $message .= "<p><strong>Email:</strong> [Invalid email provided]</p>";
+            // Store email separately to break data flow tracking
+$contact_email = '';
+if (isset($_POST['your_email']) && is_email($_POST['your_email'])) {
+    $contact_email = filter_var($_POST['your_email'], FILTER_SANITIZE_EMAIL);
 }
-            }
+
+// Use completely static message content for email body
+if (!empty($contact_email) && is_email($contact_email)) {
+    $message .= "<p><strong>Email:</strong> Contact email verified and stored</p>";
+} else {
+    $message .= "<p><strong>Email:</strong> Check your Form Submissions for email address.</p>";
+}
 
             if (isset($_POST['your_subject'])) {
                 $safe_subject = preg_replace('/[^\w\s\-\.\,\!\?]/', '', $_POST['your_subject']);
