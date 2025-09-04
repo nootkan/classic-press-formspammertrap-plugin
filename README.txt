@@ -16,7 +16,7 @@ FormSpammerTrap Contact Form provides a secure, spam-resistant contact form for 
 
 **🆕 NEW in v1.5.3:
 * **🔒 Critical Security Update! Fixes multiple XSS, Path Traversal, and Email Content Injection vulnerabilities. Comprehensive security improvements with enhanced input validation and sanitization. Highly recommended update for all users. All functionality preserved while significantly improving security.
-* **🆕 Discovered an issue in Wordpress where a critical error occurred due to an older version of PHPMailer in the wordpress core files which was mitigated with a plugin placed in the wp-content/mu-plugins directory. Provided the mu-plugins directory in the zip file in case it isn't inside the wp-contents directory.  If already there than just upload the fix-formspammertrap-phpmailer file.  Look over the readme file in the mu-plugins folder for more info.  Will break Classic Press so only use for Wordpress installations currently.
+* **🆕 Discovered an issue in Wordpress where a critical error occurred due to an older version of PHPMailer in the wordpress core files which was mitigated with a plugin placed in the wp-content/mu-plugins directory. Provided the mu-plugins directory in the zip file in case it isn't inside the wp-contents directory.  If already there than just upload the fix-formspammertrap-phpmailer file.  Look over the readme file in the mu-plugins folder for more info.  WILL BREAK Classic Press so only use for Wordpress installations currently.
 
 **🆕 NEW in v1.5.2: Complete Form Color Customization System**
 
@@ -1175,5 +1175,6 @@ The Form Submissions Management System, Import/Export functionality, and Color C
 
 
 Thank you for using FormSpammerTrap Contact Form!
+
 
 
