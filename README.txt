@@ -12,7 +12,7 @@ Professional anti-spam contact form with submission management, file uploads, im
 
 == Description ==
 
-FormSpammerTrap Contact Form provides a secure, spam-resistant contact form for your ClassicPress/Wordpress website. Built on the proven FormSpammerTrap anti-spam system, this plugin offers advanced protection against bots, spammers, and automated attacks while maintaining excellent usability for legitimate visitors.
+FormSpammerTrap Contact Form provides a secure, spam-resistant contact form for your ClassicPress/Wordpress website. Built on the proven FormSpammerTrap anti-spam system (https://FormSpammerTrap.com) by Rick Helliwell, this plugin offers advanced protection against bots, spammers, and automated attacks while maintaining excellent usability for legitimate visitors.
 
 **🆕 NEW in v1.5.3:
 * **🔒 Critical Security Update! Fixes multiple XSS, Path Traversal, and Email Content Injection vulnerabilities. Comprehensive security improvements with enhanced input validation and sanitization. Highly recommended update for all users. All functionality preserved while significantly improving security.
@@ -1183,6 +1183,7 @@ The Wordpress/ClassicPress plugin version, Form Submissions Management System, I
 
 
 Thank you for using FormSpammerTrap Contact Form!
+
 
 
 
