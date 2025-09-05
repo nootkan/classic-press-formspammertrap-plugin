@@ -669,18 +669,35 @@
 	User credentials should have Create, Delete, Index, Insert, Select, and Update privileges. Without those credentials, the Sanity Check for the database will fail.
 
 	 */
-	$FST_CONTACT_DATABASE = array(
-		"DATABASE_LOC" => "",
-		"DATABASE_NAME" => "", // the database name on your site. Required, must exist
-		"DATABASE_USER" => "", // the user name for that database. Required. Must be valid.
-		"DATABASE_PASS" => "", // the secure/strong password for the database. Required. Password strength not checked.
-		"DATABASE_TABLE" => "", // the table in the database to store contact information
-		"FIELD_EMAIL" => "", // the field name for the email address. Required. Must be at least 25 length.
-		"FIELD_FULLNAME" => "", // the field name to store the name entered into the form. Required. Must be at least 50 length
-		"FIELD_GUID" => "", // the field name to store the GUID value used for signup verification
-		"FIELD_STATUS" => "", // the field name to store the status of the entry: 10=pending verification, 20 = verified
-		"FIELD_DATESTAMP" => "", // the field name for the date to be stored, must be TIMESTAMP
-	);
+	// Get WordPress database configuration if available
+if (defined('DB_HOST') && defined('DB_NAME') && defined('DB_USER') && defined('DB_PASSWORD')) {
+    $FST_CONTACT_DATABASE = array(
+        "DATABASE_LOC" => DB_HOST,
+        "DATABASE_NAME" => DB_NAME,
+        "DATABASE_USER" => DB_USER,
+        "DATABASE_PASS" => DB_PASSWORD,
+        "DATABASE_TABLE" => (isset($wpdb) ? $wpdb->prefix : (isset($GLOBALS['table_prefix']) ? $GLOBALS['table_prefix'] : 'wp_')) . "fst_contacts",
+        "FIELD_EMAIL" => "email",
+        "FIELD_FULLNAME" => "name",
+        "FIELD_GUID" => "guid",
+        "FIELD_STATUS" => "status",
+        "FIELD_DATESTAMP" => "last_updated"
+    );
+} else {
+    // Fallback to empty array if not in WordPress
+    $FST_CONTACT_DATABASE = array(
+        "DATABASE_LOC" => "",
+        "DATABASE_NAME" => "",
+        "DATABASE_USER" => "",
+        "DATABASE_PASS" => "",
+        "DATABASE_TABLE" => "",
+        "FIELD_EMAIL" => "",
+        "FIELD_FULLNAME" => "",
+        "FIELD_GUID" => "",
+        "FIELD_STATUS" => "",
+        "FIELD_DATESTAMP" => "",
+    );
+}
 
 	// --------------------------------------------------------------------------------
 	// END - Save Contact Info section
@@ -1252,11 +1269,20 @@
 
 	// load the phpMailer namespace, which is required by sanitycheck when the form is displayed
  	// load the class files so we can get the version number
-			// load phpmailer stuff if class doesn't exist
+			// Platform-aware PHPMailer loading - prevents class conflicts
 		if (!class_exists('PHPMailer\PHPMailer\PHPMailer')) {
-		   require_once 'phpmailer/Exception.php';
-			require_once 'phpmailer/PHPMailer.php';
-			require_once 'phpmailer/SMTP.php';
+			// Try WordPress/ClassicPress PHPMailer first
+			if (defined('ABSPATH') && file_exists(ABSPATH . WPINC . '/PHPMailer/PHPMailer.php')) {
+				// WordPress/ClassicPress has PHPMailer - use it
+				require_once ABSPATH . WPINC . '/PHPMailer/Exception.php';
+				require_once ABSPATH . WPINC . '/PHPMailer/PHPMailer.php';
+				require_once ABSPATH . WPINC . '/PHPMailer/SMTP.php';
+			} else {
+				// Fallback to plugin's bundled PHPMailer
+				require_once __DIR__ . '/phpmailer/Exception.php';
+				require_once __DIR__ . '/phpmailer/PHPMailer.php';
+				require_once __DIR__ . '/phpmailer/SMTP.php';
+			}
 		}
 
 	if (class_exists('PHPMailer\PHPMailer\PHPMailer')) {
@@ -2965,14 +2991,19 @@ background-color: #45a049;
     		}
 
     		// check for the PHPMailer namespace properly loaded
-			if (FST_USE_PHPMAILER ) {
-	    		if ( (! file_exists(__DIR__ . "/phpmailer/PHPMailer.php")) OR (! file_exists(__DIR__ . "/phpmailer/Exception.php")) ){
-	    				$x[] = 'The PHPMailer functions are enabled for sending emails, but the files are not in the \'phpmailer\' folder.  Please check the documentation for details on how to properly install the PHPMailer files for your site.';
-	    		}
-	    		if ( (! file_exists(__DIR__ . "/phpmailer/SMTP.php")) AND (FST_SMTP_ENABLE)) {
-	    				$x[] = 'The PHPMailer functions are enabled for sending emails and you have specified using SMTP. The \'SMTP.php\' file is not in the \'phpmailer\' folder.  Please check the documentation for details on how to properly install the PHPMailer files for your site.';
-	    		}
+			// Platform-aware PHPMailer sanity check
+		if (FST_USE_PHPMAILER ) {
+			$platform_phpmailer = (defined('ABSPATH') && file_exists(ABSPATH . WPINC . '/PHPMailer/PHPMailer.php'));
+			$plugin_phpmailer = (file_exists(__DIR__ . "/phpmailer/PHPMailer.php") && file_exists(__DIR__ . "/phpmailer/Exception.php"));
+			
+			if (!$platform_phpmailer && !$plugin_phpmailer) {
+				$x[] = 'PHPMailer is required but not found in WordPress/ClassicPress core or plugin folder. Please ensure PHPMailer files are available.';
 			}
+			
+			if (!$platform_phpmailer && !file_exists(__DIR__ . "/phpmailer/SMTP.php") && FST_SMTP_ENABLE) {
+				$x[] = 'SMTP is enabled but SMTP.php file is not available in WordPress/ClassicPress core or plugin folder.';
+			}
+		}
 			// check for PHPMailer, unless FST_MAIL_ALT function is defined in the form
     		if ((! FST_USE_PHPMAILER) and (!function_exists('FST_MAIL_ALT'))) {
 				$x[] = "PHPMailer is not installed in the \'phpmailer\' folder, and you have not specified the FST_MAIL_ALT() function in your form. FST must use PHPMailer to send mail, unless your FST_MAIL_ALT() function exists for your own mailing process. Please check the documentation for details on how to properly install the PHPMailer files for your site.";
@@ -3905,8 +3936,6 @@ background-color: #45a049;
 		return;
 	}
 
-	// new stuff for version 17
-
 	// new since version 17
 	function fst_process_form() {
 		fst_bot_check(); // check for bots, die if found
@@ -3915,11 +3944,20 @@ background-color: #45a049;
 		if (!is_array($after_submit)) {return false;} // invalid form, so no processing - return
 		// load phpmailer if enabled
 
-		// load phpmailer stuff if class doesn't exist
+		// Platform-aware PHPMailer loading - prevents class conflicts
 		if (!class_exists('PHPMailer\PHPMailer\PHPMailer')) {
-		   require_once 'phpmailer/Exception.php';
-			require_once 'phpmailer/PHPMailer.php';
-			require_once 'phpmailer/SMTP.php';
+			// Try WordPress/ClassicPress PHPMailer first
+			if (defined('ABSPATH') && file_exists(ABSPATH . WPINC . '/PHPMailer/PHPMailer.php')) {
+				// WordPress/ClassicPress has PHPMailer - use it
+				require_once ABSPATH . WPINC . '/PHPMailer/Exception.php';
+				require_once ABSPATH . WPINC . '/PHPMailer/PHPMailer.php';
+				require_once ABSPATH . WPINC . '/PHPMailer/SMTP.php';
+			} else {
+				// Fallback to plugin's bundled PHPMailer
+				require_once __DIR__ . '/phpmailer/Exception.php';
+				require_once __DIR__ . '/phpmailer/PHPMailer.php';
+				require_once __DIR__ . '/phpmailer/SMTP.php';
+			}
 		}
 
 		// at this point, the form has been submitted and all form info / bot checking is OK
