@@ -3,7 +3,7 @@
  * Plugin Name: FormSpammerTrap Contact Form
  * Plugin URI: https://your-website.com
  * Description: Integrates FormSpammerTrap anti-spam contact form into ClassicPress with Fixed PHPMailer
- * Version: 1.5.3
+ * Version: 1.5.4
  * Author: Van Isle Web Solutions
  * License: GPL2
  * Requires at least: 4.9
@@ -2747,5 +2747,6 @@ function FST_MORE_FIELDS() {
 
 // Initialize the plugin
 new FormSpammerTrapPlugin();
+
 
 ?>
