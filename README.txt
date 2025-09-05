@@ -3,7 +3,7 @@ Contributors: Van Isle Web Solutions
 Tags: contact form, spam protection, anti-spam, form security, email, file uploads, form submissions, dashboard, import, export, color customization
 Requires at least: 4.9
 Tested up to: 6.8.2
-Stable tag: 1.5.3
+Stable tag: 1.5.4
 Requires PHP: => 7.2
 License: GPL2
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -13,6 +13,14 @@ Professional anti-spam contact form with submission management, file uploads, im
 == Description ==
 
 FormSpammerTrap Contact Form provides a secure, spam-resistant contact form for your ClassicPress/Wordpress website. Built on the proven FormSpammerTrap anti-spam system (https://FormSpammerTrap.com) by Rick Helliwell, this plugin offers advanced protection against bots, spammers, and automated attacks while maintaining excellent usability for legitimate visitors.
+
+**🆕 NEW in v1.5.4: WordPress/ClassicPress DB integration + admin stability fix**
+
+* ** Auto database configuration** — The plugin now integrates with your site’s existing WordPress/ClassicPress database configuration (from `wp-config.php`). No manual DB host/name/user/pass edits are required for the FormSpammerTrap core.
+* ** Front-end-only load of the legacy FST core** — The legacy FormSpammerTrap library is now only loaded on front-end requests. This prevents rare admin “critical error” screens (e.g., after **Users → Add New**) caused by legacy `mysqli` sanity checks.
+* ** No behavior change to spam protection** — Honeypot/timing/JS traps, submission logging, email notifications, import/export, and color customization all work exactly as before.
+* ** Compatibility** — Works on WordPress and ClassicPress; tested with PHP 8.2. No known conflicts with WooCommerce (checkout/account flows unaffected).
+* ** mu-plugin no longer required** — If you previously installed `wp-content/mu-plugins/fix-formspammertrap-phpmailer.php` to mitigate PHPMailer duplication, you can now remove it. The legacy core only loads on the front-end, so there’s no PHPMailer conflict in wp-admin.
 
 **🆕 NEW in v1.5.3:
 * **🔒 Critical Security Update! Fixes multiple XSS, Path Traversal, and Email Content Injection vulnerabilities. Comprehensive security improvements with enhanced input validation and sanitization. Highly recommended update for all users. All functionality preserved while significantly improving security.
@@ -210,7 +218,7 @@ Simply add the `[formspammertrap]` shortcode to any page or post to display the 
 **Configuration:**
 7. Go to Settings > FormSpammerTrap in your admin
 8. Set your email address (must be on your domain)
-9. **NEW:** Configure form colors in the "Form Color Customization" section
+9. Configure form colors in the "Form Color Customization" section
 10. Configure file upload options if desired
 11. Review security status and configure retention settings
 12. Access Settings > Form Submissions to view and manage all form submissions
@@ -757,8 +765,17 @@ Visit FormSpammerTrap.com for support with the core FormSpammerTrap system.
 
 == Changelog ==
 
+= 1.5.4 =
+* **🆕 Integration & Stability**
+* Added WordPress/ClassicPress database adapter: automatically uses site DB credentials (no manual edits required).
+* Changed legacy FormSpammerTrap core to load on **front-end only**, eliminating rare admin “critical error” pages (e.g., after creating a user) due to legacy `mysqli` sanity checks.
+* No changes to spam protection logic, submissions dashboard, import/export, or color customization.
+* Verified compatibility with WooCommerce; no checkout/account hooks are modified.
+* Deprecated the temporary mu-plugin PHPMailer shim; it is no longer required and can be removed.
+
 = 1.5.3 =
 * **🔒 COMPREHENSIVE SECURITY UPDATE**
+*Note: As of 1.5.4, the mu-plugin mentioned below is no longer required.*
 * Fixed multiple XSS (Cross-Site Scripting) vulnerabilities in admin interface output
 * Enhanced input sanitization using WordPress security functions (esc_html, sanitize_text_field, sanitize_email)
 * Fixed Path Traversal vulnerabilities in file upload and directory creation functions
@@ -893,6 +910,9 @@ Visit FormSpammerTrap.com for support with the core FormSpammerTrap system.
 * Multi-recipient email support (CC/BCC)
 
 == Upgrade Notice ==
+== 1.5.4 =
+* **🆕 Stability update: removes rare admin “critical error” screens by loading the legacy FormSpammerTrap core on front-end only, and auto-configures database credentials from WordPress/ClassicPress. No behavior changes to spam protection. Recommended for all users.
+
 == 1.5.3 =
 * **🔒 Critical Security Update! Fixes multiple XSS, Path Traversal, and Email Content Injection vulnerabilities. Comprehensive security improvements with enhanced input validation and sanitization. Highly recommended update for all users. All functionality preserved while significantly improving security.
 * **🆕 Discovered an issue in Wordpress and Classic Press where a critical error occurred due to duplicate PHPMailer conflicts as the formspammertrap core file does a sanity check to ensure the PHPMailer folder and files exists in the formspammertrap includes directory. Wordpress and ClassicPress both include PHPMailer in their core files also so this was mitigated with a plugin placed in the wp-content/mu-plugins directory. Provided the mu-plugins directory in the zip file in case it isn't inside the wp-contents directory.  If already there than just upload the fix-formspammertrap-phpmailer file.  Look over the readme file in the mu-plugins folder for more info.
@@ -997,6 +1017,7 @@ wp-content/plugins/formspammertrap-plugin/
 ├── formspammertrap-export.php (export functionality)
 ├── includes/
 │   ├── formspammertrap-contact-functions.php (required)
+│   ├── formspammertrap-wordpress-functions.php (WordPress/ClassicPress DB adapter; no manual DB config needed)
 │   └── phpmailer/
 │       ├── PHPMailer.php (required)
 │       ├── Exception.php (required)
@@ -1183,6 +1204,7 @@ The Wordpress/ClassicPress plugin version, Form Submissions Management System, I
 
 
 Thank you for using FormSpammerTrap Contact Form!
+
 
 
 
