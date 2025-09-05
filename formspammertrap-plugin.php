@@ -21,6 +21,12 @@ class FormSpammerTrapPlugin {
 	// Include export functionality
     require_once plugin_dir_path(__FILE__) . 'formspammertrap-export.php';
 	require_once plugin_dir_path(__FILE__) . 'formspammertrap-import.php';
+	
+	// Include WordPress database functions if not already loaded
+    if (!function_exists('fst_create_contact_table')) {
+        require_once plugin_dir_path(__FILE__) . 'includes/formspammertrap-wordpress-functions.php';
+    }
+	
     add_action('init', array($this, 'init'));
     add_action('wp_enqueue_scripts', array($this, 'enqueue_scripts'));
     add_shortcode('formspammertrap', array($this, 'formspammertrap_shortcode'));
@@ -84,13 +90,16 @@ class FormSpammerTrapPlugin {
         
         // Include the FormSpammerTrap functions file
         $functions_file = plugin_dir_path(__FILE__) . 'includes/formspammertrap-contact-functions.php';
-        
-        if (file_exists($functions_file)) {
-            include_once($functions_file);
-        } else {
-            add_action('admin_notices', array($this, 'missing_functions_notice'));
-            return;
-        }
+
+       // Load the legacy FST library only on the front-end to avoid mysqli checks in wp-admin
+       if (!is_admin() && file_exists($functions_file)) {
+           include_once $functions_file;
+       } elseif (!file_exists($functions_file)) {
+           add_action('admin_notices', array($this, 'missing_functions_notice'));
+       return;
+    }
+
+
         
         // Add CSS and JavaScript hooks
         add_action('wp_head', 'formspammertrap_contact_css');
@@ -1919,10 +1928,12 @@ function syncColorInputs(sourceElement, targetName) {
     add_option('fst_submit_button_color', '#38f923');
     add_option('fst_submit_button_hover_color', '#00E000');
     add_option('fst_submit_button_text_color', '#000000');
-	add_option('fst_submit_button_text_color', '#000000');
     add_option('fst_reset_button_color', '#FF0000');
     add_option('fst_reset_button_hover_color', '#FFFF00');
     add_option('fst_reset_button_text_color', '#FFFFFF');
+	
+	// Create the contact table
+    fst_create_contact_table();
     
     // NEW: Create submissions table
     $this->create_submissions_table();
@@ -2387,29 +2398,35 @@ if (defined('FST_FROM_NAME')) {
     $from_name = get_bloginfo('name'); // WordPress site name instead of HTTP_HOST
 }
     
-    // Load PHPMailer if not already loaded
+    // Platform-aware PHPMailer loading - prevents class conflicts
     if (!class_exists('PHPMailer\PHPMailer\PHPMailer')) {
-        $phpmailer_path = plugin_dir_path(__FILE__) . 'includes/phpmailer/';
-        if (file_exists($phpmailer_path . 'Exception.php')) {
-            // Use WordPress's built-in PHPMailer
-		if (!class_exists('PHPMailer\PHPMailer\PHPMailer')) {
-		    require_once ABSPATH . WPINC . '/PHPMailer/Exception.php';
-			require_once ABSPATH . WPINC . '/PHPMailer/PHPMailer.php';
-			require_once ABSPATH . WPINC . '/PHPMailer/SMTP.php';
-		}
+        // Try WordPress/ClassicPress PHPMailer first
+        if (file_exists(ABSPATH . WPINC . '/PHPMailer/PHPMailer.php')) {
+            // WordPress/ClassicPress has PHPMailer - use it
+            require_once ABSPATH . WPINC . '/PHPMailer/Exception.php';
+            require_once ABSPATH . WPINC . '/PHPMailer/PHPMailer.php';
+            require_once ABSPATH . WPINC . '/PHPMailer/SMTP.php';
         } else {
-            // Fallback to system mail if PHPMailer not available
-            $static_headers = "From: " . get_option('admin_email') . "\r\nReply-To: " . get_option('admin_email') . "\r\n";
-            $static_subject = "Contact Form Submission";
-            $static_message = "A contact form was submitted. Check admin for details.";
-            $mail_result = mail($recipient, $static_subject, $static_message, $static_headers);
-            
-            // Update submission status based on email result
-            if ($submission_id) {
-                fst_update_submission_status($submission_id, $mail_result ? 'sent' : 'email_failed');
+            // Fallback to plugin's bundled PHPMailer
+            $phpmailer_path = plugin_dir_path(__FILE__) . 'includes/phpmailer/';
+            if (file_exists($phpmailer_path . 'Exception.php')) {
+                require_once $phpmailer_path . 'Exception.php';
+                require_once $phpmailer_path . 'PHPMailer.php';
+                require_once $phpmailer_path . 'SMTP.php';
+            } else {
+                // Fallback to system mail if PHPMailer not available
+                $static_headers = "From: " . get_option('admin_email') . "\r\nReply-To: " . get_option('admin_email') . "\r\n";
+                $static_subject = "Contact Form Submission";
+                $static_message = "A contact form was submitted. Check admin for details.";
+                $mail_result = mail($recipient, $static_subject, $static_message, $static_headers);
+                
+                // Update submission status based on email result
+                if ($submission_id) {
+                    fst_update_submission_status($submission_id, $mail_result ? 'sent' : 'email_failed');
+                }
+                
+                return $mail_result;
             }
-            
-            return $mail_result;
         }
     }
     
@@ -2500,6 +2517,7 @@ if (!empty($contact_email) && is_email($contact_email)) {
         $message .= "<div>No message content provided.</div>";
     }
 }
+		}
         
         // Handle file attachments
         $upload_status = "";
